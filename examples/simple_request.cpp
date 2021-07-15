@@ -6,7 +6,7 @@
 #include <map>
 #include <string>
 
-#include "jdl/httpclientlite.hxx"
+#include <jdl/httpclientlite.h>
 
 
 using namespace jdl;

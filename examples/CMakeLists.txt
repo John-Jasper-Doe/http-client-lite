@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(examples)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
-add_executable(${PROJECT_NAME}_simple_request simple_request.cxx)
+add_executable(${PROJECT_NAME}_simple_request simple_request.cpp)
+target_link_libraries(${PROJECT_NAME}_simple_request PRIVATE http_client_lite)
