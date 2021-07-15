@@ -1,19 +1,30 @@
-# picohttpclient
+# HTTP Client lite: C++ Cross-platform library only from single-file header-only
 
-A generic, lightweight HTTP 1.1 client.
-It was born out of the need to quickly do very simple HTTP requests, without adding larger dependencies to a project.
+This is a lite, C++ cross-platform header-only client library for http request based 
+on [csachs/picohttpclient](https://github.com/csachs/picohttpclient) project.
 
-License: MIT
+A Lightweight HTTP 1.1 client where to quickly do very simple HTTP requests, 
+without adding larger dependencies to a project.
 
-* no complex features, no chunking, no ssl, no keepalive ...
-* not very tested, use at your own risk!
-* it PURPOSELY does not use any feature-complete libraries (like cURL) to stay lean and header-only.
-* it does not use C++11 features to fit well in legacy code bases
-* it has some suboptimal properties (like many string copy ops)
 
-Usage as easy as (see `main.cpp` for an example):
+## License
 
+http client lite  is distributed under the [MIT License](https://github.com/john-jasper-doe/http-client-lite/blob/master/LICENSE).
+
+
+## Example usage
+
+To see how this can be used see the examples folders.
+
+
+**Example:**
 ```C++
+#include <jdl/httpclientlite.hpp>
+...
+using namespace jdl;
+...
 HTTPResponse response = HTTPClient::request(HTTPClient::GET, URI("http://example.com"));
 cout << response.body << endl;
+...
 ```
+
