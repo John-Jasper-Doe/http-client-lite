@@ -6,7 +6,7 @@
 #include <map>
 #include <string>
 
-#include <jdl/httpclientlite.h>
+#include <jdl/httpclientlite.hpp>
 
 
 using namespace jdl;
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  std::cout << "Request success" << endl;
+  std::cout << "Request success" << std::endl;
 
   std::cout << "Server protocol: " << response.protocol << std::endl;
   std::cout << "Response code: " << response.response << std::endl;
