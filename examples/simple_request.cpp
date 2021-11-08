@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
-  HTTPResponse response = HTTPClient::request(HTTPClient::POST, URI(argv[1]));
+  HTTPResponse response = HTTPClient::request(HTTPClient::POST, uri(argv[1]));
 
   if (!response.success) {
     std::cout << "Request failed!" << std::endl;
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "Headers:" << std::endl;
 
-  for (stringMap::iterator it = response.header.begin(); it != response.header.end(); ++it) {
+  for (string_map_t::iterator it = response.header.begin(); it != response.header.end(); ++it) {
     std::cout << "\t" << it->first << "=" << it->second << std::endl;
   }
 
