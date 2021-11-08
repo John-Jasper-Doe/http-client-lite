@@ -40,3 +40,5 @@ endfunction()
 
 
 addtest(tokenizer tokenizer.cpp)
+addtest(uri uri.cpp)
+addtest(http_client http_client.cpp)
