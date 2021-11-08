@@ -43,7 +43,7 @@
 
 #include <iostream>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <cstring>
 #include <sstream>
@@ -129,27 +129,32 @@ namespace jdl {
 
 
 
-  typedef std::map<std::string, std::string> stringMap;
+  using string_map_t = std::unordered_map<std::string, std::string>;
 
-  struct URI {
-    inline void parseParameters() {
-      tokenizer qt(querystring);
-      do {
-        std::string key = qt.next("=");
-        if (key == "")
-          break;
-        parameters[key] = qt.next("&", true);
-      } while (true);
-    }
+  struct uri {
+    std::string protocol;
+    std::string host;
+    std::string port;
+    std::string address;
+    std::string query_string;
+    std::string hash;
 
-    inline URI(std::string input, bool shouldParseParameters = false) {
+    string_map_t parameters;
+
+    explicit uri(std::string input, bool shouldParseParameters = false) {
       tokenizer t = tokenizer(input);
+
       protocol = t.next("://");
-      std::string hostPortString = t.next("/");
+      if (protocol.empty())
+        protocol = std::string("http", 4);
 
-      tokenizer hostPort(hostPortString);
+      std::string host_and_port = t.next("/");
+//      if (host_and_port.empty())
+//        host_and_port = t.tail();
 
-      host = hostPort.next(hostPortString[0] == '[' ? "]:" : ":", true);
+      tokenizer hostPort(host_and_port);
+
+      host = hostPort.next(host_and_port[0] == '[' ? "]:" : ":", true);
 
       if (host[0] == '[')
         host = host.substr(1, host.size() - 1);
@@ -159,7 +164,7 @@ namespace jdl {
         port = "80";
 
       address = t.next("?", true);
-      querystring = t.next("#", true);
+      query_string = t.next("#", true);
 
       hash = t.tail();
 
@@ -168,9 +173,24 @@ namespace jdl {
       }
     }
 
-    std::string protocol, host, port, address, querystring, hash;
-    stringMap parameters;
+    void parseParameters() {
+      tokenizer qt(query_string);
+      do {
+        std::string key = qt.next("=");
+        if (key == "")
+          break;
+        parameters[key] = qt.next("&", true);
+      } while (true);
+    }
   };
+
+
+
+
+
+
+
+
 
   struct HTTPResponse {
     bool success;
@@ -178,7 +198,7 @@ namespace jdl {
     std::string response;
     std::string responseString;
 
-    stringMap header;
+    string_map_t header;
 
     std::string body;
 
@@ -189,6 +209,29 @@ namespace jdl {
       return result;
     }
   };
+
+
+
+  namespace http_client {
+
+    enum class http_method : uint8_t { OPTIONS = 0, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT };
+
+    static std::vector<std::string> methods = {
+      "OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT"
+    };
+
+    template <http_method __HTTP_TYPE>
+    constexpr std::string &method2string() { return methods[static_cast<uint8_t>(__HTTP_TYPE)]; }
+
+
+
+  } /* http_client:: */
+
+
+
+
+
+
 
   struct HTTPClient {
     typedef enum {
@@ -208,7 +251,7 @@ namespace jdl {
       return methods[method];
     }
 
-    inline static int connectToURI(const URI& uri) {
+    inline static int connectToURI(const uri& uri) {
       struct addrinfo hints, *result, *rp;
 
       memset(&hints, 0, sizeof(addrinfo));
@@ -276,7 +319,7 @@ namespace jdl {
   #define HTTP_SPACE " "
   #define HTTP_HEADER_SEPARATOR ": "
 
-    inline static HTTPResponse request(HTTPMethod method, const URI& uri, const std::string& body = "") {
+    inline static HTTPResponse request(HTTPMethod method, const uri& uri, const std::string& body = "") {
 
       int fd = connectToURI(uri);
       if (fd < 0)
@@ -290,7 +333,7 @@ namespace jdl {
   //                     "Connection: close" HTTP_NEWLINE HTTP_NEWLINE;
 
       std::string request = std::string(method2string(method)) + std::string(" /") +
-                       uri.address + ((uri.querystring == "") ? "" : "?") + uri.querystring + " HTTP/1.1" + HTTP_NEWLINE +
+                       uri.address + ((uri.query_string == "") ? "" : "?") + uri.query_string + " HTTP/1.1" + HTTP_NEWLINE +
                        "Host: " + uri.host + ":" + uri.port + HTTP_NEWLINE +
                        "Accept: */*" + HTTP_NEWLINE +
                        content_type + HTTP_NEWLINE +
