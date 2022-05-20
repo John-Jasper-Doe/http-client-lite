@@ -15,6 +15,7 @@ project(http_client_lite LANGUAGES CXX)
 ## Adding a path with "cmake" modules to the system search paths.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(compiler)
+include(clang-format)
 
 ## Set output binary
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)

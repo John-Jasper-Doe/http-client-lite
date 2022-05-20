@@ -3,14 +3,11 @@
  */
 
 #include <iostream>
+#include <jdl/httpclientlite.hpp>
 #include <map>
 #include <string>
 
-#include <jdl/httpclientlite.hpp>
-
-
 using namespace jdl;
-
 
 int main(int argc, char *argv[]) {
   if (argc == 1) {
@@ -18,9 +15,9 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
-  HTTPResponse response = HTTPClient::request(HTTPClient::POST, uri(argv[1]));
+  http::response response = HTTPClient::request<http::method::POST>(uri::uri(argv[1]));
 
-  if (!response.success) {
+  if (response.status == http::resp_stat::failure) {
     std::cout << "Request failed!" << std::endl;
     return EXIT_FAILURE;
   }
@@ -28,8 +25,8 @@ int main(int argc, char *argv[]) {
   std::cout << "Request success" << std::endl;
 
   std::cout << "Server protocol: " << response.protocol << std::endl;
-  std::cout << "Response code: " << response.response << std::endl;
-  std::cout << "Response string: " << response.responseString << std::endl;
+  std::cout << "Response code: " << response.resp << std::endl;
+  std::cout << "Response string: " << response.resp_str << std::endl;
 
   std::cout << "Headers:" << std::endl;
 

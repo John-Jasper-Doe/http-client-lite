@@ -15,9 +15,9 @@ project(tests LANGUAGES CXX)
 message(STATUS "Configure test cases...")
 
 ## Function for adding test cases.
-function(addtest TEST_NAME MAIN_FILE)
+function(addtest TEST_NAME)
   set(EXEC_TEST_NAME "${PROJECT_NAME}_${TEST_NAME}")
-  add_executable(${EXEC_TEST_NAME} ${MAIN_FILE} testhelper.hpp)
+  add_executable(${EXEC_TEST_NAME} ${TEST_NAME}.cpp)
 
   add_test(
     NAME ${EXEC_TEST_NAME}
@@ -39,6 +39,8 @@ function(addtest TEST_NAME MAIN_FILE)
 endfunction()
 
 
-addtest(tokenizer tokenizer.cpp)
-addtest(uri uri.cpp)
-addtest(http_client http_client.cpp)
+#addtest(tokenizer tokenizer.cpp)
+#addtest(uri uri.cpp)
+#addtest(http_client http_client.cpp)
+addtest(buffer)
+addtest(string_chunk)
