@@ -48,6 +48,7 @@
 #include <string>
 #include <algorithm>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <cassert>
 
@@ -72,12 +73,67 @@ typedef int socktype_t;
 
 #endif /* PLATFORM_WINDOWS or PLATFORM_LINUX */
 
+
+#if __cplusplus
+
+/// Macro for constexpr, to support in mixed 03/0x mode.
+#ifndef JDLCXX_CONSTEXPR
+# if __cplusplus >= 201103L
+#  define JDLCXX_CONSTEXPR constexpr
+#  define JDLCXX_USE_CONSTEXPR constexpr
+# else
+#  define JDLCXX_CONSTEXPR
+#  define JDLCXX_USE_CONSTEXPR const
+# endif
+#endif
+
+#ifndef JDLCXX14_CONSTEXPR
+# if __cplusplus >= 201402L
+#  define JDLCXX14_CONSTEXPR constexpr
+# else
+#  define JDLCXX14_CONSTEXPR
+# endif
+#endif
+
+#ifndef JDLCXX17_CONSTEXPR
+# if __cplusplus >= 201703L
+#  define JDLCXX17_CONSTEXPR constexpr
+# else
+#  define JDLCXX17_CONSTEXPR
+# endif
+#endif
+
+#ifndef JDLCXX20_CONSTEXPR
+# if __cplusplus > 201703L
+#  define JDLCXX20_CONSTEXPR constexpr
+# else
+#  define JDLCXX20_CONSTEXPR
+# endif
+#endif
+
+#ifndef JDLCXX17_INLINE
+# if __cplusplus >= 201703L
+#  define JDLCXX17_INLINE inline
+# else
+#  define JDLCXX17_INLINE
+# endif
+#endif
+
+#endif /* __cplusplus */
+
+
+
+
+
+
 const std::string content_type { "Content-Type: text/plain; version=0.0.4; charset=utf-8" };
 
 const std::string http_new_line { "\r\n" };
 const std::string http_space { " " };
 const std::string http_header_separator { ": " };
 
+/// @namespace jdl
+/// @brief JDL - John Doe Library
 namespace jdl {
 
   void init_socket() {
@@ -105,7 +161,7 @@ namespace jdl {
   using enable_if_t = typename std::enable_if_t<COND, TYPE>;
 
   template<typename TYPE, typename COMPARED_TYPE >
-  constexpr bool is_same_v = std::is_same_v<TYPE, COMPARED_TYPE>;
+  JDLCXX17_INLINE constexpr bool is_same_v = std::is_same_v<TYPE, COMPARED_TYPE>;
 
   template <typename TYPE>
   using remove_cv_t = typename std::remove_cv_t<TYPE>;
@@ -119,7 +175,7 @@ namespace jdl {
   using enable_if_t = typename std::enable_if_t<COND, TYPE>;
 
   template<typename TYPE, typename COMPARED_TYPE >
-  constexpr bool is_same_v = std::is_same<TYPE, COMPARED_TYPE>::value;
+  JDLCXX17_INLINE constexpr bool is_same_v = std::is_same<TYPE, COMPARED_TYPE>::value;
 
   template <typename TYPE>
   using remove_cv_t = typename std::remove_cv_t<TYPE>;
@@ -128,18 +184,60 @@ namespace jdl {
 
   // Trates
   template <typename TYPE>
-  constexpr bool is_integral_v = std::is_integral<TYPE>::value;
+  JDLCXX17_INLINE constexpr bool is_integral_v = std::is_integral<TYPE>::value;
 
   template <bool COND, typename TYPE = void>
   using enable_if_t = typename std::enable_if<COND, TYPE>::type;
 
   template<typename TYPE, typename COMPARED_TYPE >
-  constexpr bool is_same_v = std::is_same<TYPE, COMPARED_TYPE>::value;
+  JDLCXX17_INLINE constexpr bool is_same_v = std::is_same<TYPE, COMPARED_TYPE>::value;
 
   template <typename TYPE>
   using remove_cv_t = typename std::remove_cv<TYPE>::type;
 
+  template <typename TYPE>
+  using remove_pointer_t = typename std::remove_pointer<TYPE>::type;
+
 #endif /* Check C++ Standart */
+
+
+  /// is_require_type_v
+  /// @brief Comparing the received type with the required type
+  ///
+  /// The resulting type is reduced to a primitive, i.e. "const" and "volatile" are removed
+  /// and this naked type is compared with the specified type.
+  /// @tparam CHECK_TYPE - resulting type
+  /// @tparam TYPE - required type
+  template <typename CHECK_TYPE, typename TYPE>
+  constexpr bool is_require_type_v = is_same_v<remove_cv_t<remove_pointer_t<CHECK_TYPE>>, TYPE>;
+
+
+  /// is_char_type of false_type
+  /// @brief Checking whether the type is a character type
+  template <typename, typename CHECK = void>
+  struct is_char_type : std::false_type { };
+
+  /// is_char_type of true_type
+  /// @brief Checking whether the type is a character type
+  template <typename TYPE>
+  struct is_char_type<TYPE, enable_if_t<is_require_type_v<TYPE, char       > ||
+                                        is_require_type_v<TYPE, wchar_t    > ||
+                                        is_require_type_v<TYPE, char16_t   > ||
+                                        is_require_type_v<TYPE, char32_t   >
+      >> : std::true_type { };
+
+  /// is_char_type_v
+  /// @brief Aliase of is_char_type
+  template <typename TYPE>
+  constexpr bool is_char_type_v = is_char_type<TYPE>::value;
+
+
+
+
+
+
+
+
 
   class tokenizer {
     const std::string str_;
@@ -174,14 +272,36 @@ namespace jdl {
 
   using string_map_t = std::unordered_map<std::string, std::string>;
 
-  /** @namespace external_dependencies */
-  namespace external_dependencies {
 
-    /** @class string_chunk
-     *  @brief Implementation of the string_view micro class
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /// @namespace common
+  /// @brief Description of the general functionality for this module
+  namespace common {
+
+    /// @class string_chunk
+    /// @brief Implementation of the string_view micro class
+    ///
+    /// A small self-written implementation of the class resembling "string_view" for
+    /// ease of operation.
+    /// @tparam CHAR_TYPE - Internal data type
     template <typename CHAR_TYPE = char>
-    class string_chunk {
+    class string_chunk final {
+      static_assert (jdl::is_char_type_v<CHAR_TYPE>, "Wrong char type");
+
     public:
       using value_type             = CHAR_TYPE;
 
@@ -208,11 +328,12 @@ namespace jdl {
       string_chunk(char const* ptr, size_t sz) noexcept : data_(ptr), size_(sz) { }
       string_chunk(std::string const& str)     noexcept : data_(str.data()), size_(str.size()) { }
 
-      const_reference operator[](size_type pos) const { return get_on_pos(pos); }
+      const_reference operator[](size_type pos) const { return data_[pos]; }
 
       string_chunk& operator=(string_chunk const& other) noexcept {
         data_ = other.data_;
         size_ = other.size_;
+
         return *this;
       }
 
@@ -244,6 +365,15 @@ namespace jdl {
             : to_pos(std::search(data_ + pos, data_ + size_, str.begin(), str.end()));
       }
 
+      std::string str() const noexcept {
+        return (empty()) ? std::string() : std::string(data_, size_);
+      }
+
+      const_reference at(size_type pos) const {
+        assert (pos < size());
+        return data_[pos];
+      }
+
     protected:
       size_type to_pos(const_reverse_iterator it) const {
         return (it == crend()) ? std::string::npos : size_type(crend() - it - 1);
@@ -252,74 +382,20 @@ namespace jdl {
       size_type to_pos(const_iterator it) const {
         return (it == cend()) ? std::string::npos : size_type(it - cbegin());
       }
-
-      const_reference get_on_pos(size_type pos) const {
-        assert (pos < size());
-        return data_[pos];
-      }
     };
 
 
-
-  } /* external_dependencies:: */
-
-  /** @namespace details_http_client_lite */
-  namespace details_http_client_lite {
-
-
-    template <typename TYPE = std::string,
-              typename = jdl::enable_if_t<jdl::is_same_v<jdl::remove_cv_t<TYPE>, TYPE>, bool>>
-    using checker_t = std::function<bool(TYPE const&)>;
-
-    using string_chunk_t = external_dependencies::string_chunk<>;
-
-    template <typename OFFSET_TYPE>
-    class offseter;
-
-    /** @class buffer */
-    class buffer {
-      std::string const str_;
-
-    public:
-      buffer() = delete;
-      explicit buffer(std::string const& str) noexcept : str_(std::move(str)) { }
-
-      bool is_empty() noexcept { return str_.empty(); }
-
-      size_t             size() const noexcept { return str_.size(); }
-      std::string const& str()  const noexcept { return str_; }
-      char const*        data() const noexcept { return str_.data(); }
-
-      template <typename OFFSET_TYPE>
-      offseter<OFFSET_TYPE> get_offseter(std::string const& str) {
-        size_t pos = str_.find(str);
-        if (pos != std::string::npos) {
-          return offseter<OFFSET_TYPE>(static_cast<OFFSET_TYPE>(pos), str.size());
-        }
-
-        return offseter<OFFSET_TYPE>();
-      }
-
-      template <typename OFFSET_TYPE, size_t POSITION, size_t COUNT>
-      offseter<OFFSET_TYPE> get_token(std::string const& delim, checker_t<string_chunk_t> checker) {
-        string_chunk_t cnk(str_.data() + POSITION, COUNT);
-
-        size_t pos = cnk.find(delim);
-        if (pos != std::string::npos && checker != nullptr &&
-            checker(string_chunk_t(str_.data() + POSITION + pos, delim.size()))) {
-          return offseter<OFFSET_TYPE>(static_cast<OFFSET_TYPE>(pos), delim.size());
-        }
-
-        return offseter<OFFSET_TYPE>();
-      }
-    };
-
-    /** @class offeter */
+    /// @struct offeter
+    /// @brief The storage struct of the offset in the buffer and the size of the data
+    ///
+    /// The structure of storing the offset in a given buffer and the size of the data. It helps
+    /// to store data economically without copying. This structure must be inherited in order to
+    /// register the data in which the offsets must be stored.
+    /// @tparam OFFSET_TYPE - offset type, by default "uint16_t"
     template <typename OFFSET_TYPE = uint16_t>
-    class offseter final {
-      static_assert(jdl::is_integral_v<OFFSET_TYPE>, "Wrong type, should be integral");
+    struct offseter {
+      static_assert (jdl::is_integral_v<OFFSET_TYPE>, "Wrong type, should be integral");
 
-    public:
       using offset_type        = OFFSET_TYPE;
       using size_type          = size_t;
       using internel_size_type = OFFSET_TYPE;
@@ -330,18 +406,16 @@ namespace jdl {
 
     public:
       offseter() = default;
-      offseter(offset_type offset, offset_type size) noexcept : offset_(offset), size_(size) { }
+      offseter(offset_type offset, offset_type size) noexcept
+        : offset_(offset), size_(size)
+      { }
 
       bool        is_empty() const noexcept { return (offset_ == 0 && size_ == 0); }
 
       size_type   size()     const noexcept { return static_cast<size_type>(size_); }
       offset_type offset()   const noexcept { return offset_; }
 
-      string_chunk_t get(buffer const& buff) const noexcept {
-        return (buff.size() > (offset_ + size_))
-            ? string_chunk_t(buff.data() + offset_, size_)
-            : string_chunk_t();
-      }
+      // !!! The GET function should be written in the heirs !!!
 
       void set(offset_type offset, offset_type size) noexcept {
         offset_ = offset;
@@ -359,42 +433,396 @@ namespace jdl {
       friend std::ostream& operator<<(std::ostream&, offseter<> const&);
     };
 
+
+    /// @fn operator<<
+    /// @brief The data output operator of the "offseter" class
+    ///
+    /// The "offseter" class data output operator to the output stream, for checking and debugging.
+    /// @param os - output stream
+    /// @param of - offseter
     std::ostream& operator<<(std::ostream& os, offseter<> const& of) {
         return (os << "[ offset: " << of.offset_ << ", size: " << of.size_);
     }
 
+  } /* common:: */
 
 
-    template <size_t START_POSITION>
-    inline std::string get_token(const std::string& str, const std::string& delim, checker_t<> checker) {
-      std::size_t hit = str.find(delim, START_POSITION);
-      if (hit != std::string::npos) {
-        if (checker(str.substr(START_POSITION, hit - START_POSITION)))
-          return str.substr(START_POSITION, hit - START_POSITION);
+  /// @namespace details_http_client_lite
+  /// @brief Internal functionality of the module
+  namespace details_http_client_lite {
+
+    /// @typedef cond_set_t
+    /// @brief Conditional sets type
+    ///
+    /// The type is used to specify sets of characters for checking parts of the URI.
+    using cond_set_t = std::unordered_set<char>;
+
+
+    /// @typedef buffer_t
+    /// @brief Buffer containing URI
+    using buffer_t = std::string;
+
+
+    /// @typedef const_buff_t
+    /// @brief Constant buffer
+    using const_buffer_t = buffer_t const;
+
+
+    /// string_chunk_t
+    /// @brief Aliase of string_chunk with char type
+    using string_chunk_t = common::string_chunk<char>;
+
+
+    /// @struct buff_offset
+    /// @brief The heir of the @a"offseter" class for the buffer
+    struct buff_offset final : public common::offseter<uint16_t> {
+      buff_offset() = default;
+      explicit buff_offset(buff_offset::offset_type offset, buff_offset::offset_type size) noexcept
+        : common::offseter<uint16_t>(offset, size)
+      { }
+
+      string_chunk_t get(const_buffer_t& buff) const noexcept {
+        return (buff.size() > (this->offset() + this->size()))
+            ? string_chunk_t(buff.data() + this->offset(), this->size())
+            : string_chunk_t();
+      }
+    };
+
+
+    /// @struct checker
+    /// @brief Checks for the specified set
+    ///
+    /// The controller checks the symbols in the set package.
+    /// @tparam CHECK_PACK - the set package
+    /// @return TRUE if the symbol is in at least one set, otherwise FALSE
+    template <typename ...CHECK_PACK>
+    struct checker final {
+      using check_pack_t = std::tuple<CHECK_PACK...>;
+
+      template <std::size_t IDX>
+      static inline jdl::enable_if_t<IDX == sizeof...(CHECK_PACK), bool>
+      process(char const&, check_pack_t const&) {
+        return false;
       }
 
-      return std::string();
-    }
+      template <std::size_t IDX>
+      static inline jdl::enable_if_t<IDX < sizeof...(CHECK_PACK), bool>
+      process(char const& ch, check_pack_t const& check_pack) {
+        return (std::get<IDX>(check_pack).check(ch)) ? true : process<IDX + 1>(ch, check_pack);
+      }
 
+      bool operator()(string_chunk_t const& str) {
+        check_pack_t check_pack;
+
+        for (char const& ch : str) {
+          if (!process<0>(ch, check_pack)) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+    };
+
+
+    /// checker_default_t
+    /// @brief Aliase of checker by default without chack_pack
+    using checker_default_t = checker<>;
+
+
+    /// @class verify_cond
+    /// @brief Data required for verification
+    ///
+    /// The class contains a set of characters to check for validity. The class is inherited
+    /// and the data is filled in by the inheritors.
+    class verify_cond {
+      cond_set_t const cond_set_;
+
+    public:
+      verify_cond() = delete;
+      explicit verify_cond(cond_set_t const& cond_set) noexcept
+        : cond_set_(cond_set)
+      { }
+
+      bool check(char const& ch) const {
+        return cond_set_.find(ch) != cond_set_.end();
+      }
+    };
+
+
+    /// @class uri_base
+    /// @brief URI base class
+    ///
+    /// The URI base class stores a buffer with the address and the necessary functionality
+    /// for obtaining tokens.
+    class uri_base {
+      const_buffer_t& buff_ref_;
+
+    public:
+      uri_base() = delete;
+      explicit uri_base(buffer_t& buffer) noexcept
+        : buff_ref_(buffer)
+      { }
+
+      template <std::size_t POSITION = 0, int COUNT = -1, typename CHECKER = checker_default_t>
+      buff_offset get_token(std::string const& delim) {
+        string_chunk_t cnk(buff_ref_.data() + POSITION,
+                           ((COUNT < 0) ? buff_ref_.size() : (size_t)COUNT));
+
+        std::size_t find_pos = cnk.find(delim);
+        if (find_pos != 0 && find_pos != std::string::npos &&
+            CHECKER()(string_chunk_t(buff_ref_.data() + POSITION, find_pos - POSITION))) {
+          return buff_offset(static_cast<buff_offset::offset_type>(POSITION),
+                             static_cast<buff_offset::offset_type>(find_pos - POSITION));
+        }
+
+        return buff_offset();
+      }
+
+      const_buffer_t& buff_ref() const {
+        return buff_ref_;
+      }
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    //DEPRICATE!!!!!
+//    template <size_t START_POSITION>
+//    inline std::string get_token(const std::string& str, const std::string& delim, checker_t<> checker) {
+//      std::size_t hit = str.find(delim, START_POSITION);
+//      if (hit != std::string::npos) {
+//        if (checker(str.substr(START_POSITION, hit - START_POSITION)))
+//          return str.substr(START_POSITION, hit - START_POSITION);
+//      }
+
+//      return std::string();
+//    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    struct authority {
+//      struct userinfo {
+//        offseter<> username;
+//        offseter<> password;
+//      };
+
+//      struct host {
+//        offseter<> hostname;
+//        offseter<> port;
+//      };
+
+//      authority(buffer<>& /*buffer*/){}
+//    };
+
+
+//    struct query {
+//      std::unordered_map<offseter<>, offseter<>> store;
+//    };
+
+
+//    using schem_t     = offseter<>;
+//    using authority_t = authority;
+//    using path_t      = offseter<>;
+//    using query_t     = query;
+//    using fragment_t  = offseter<>;
+
+
+//    class url {
+//      schem_t     schem_;
+////      authority_t authority_;
+//      path_t      path_;
+////      query_t     query_;
+//      fragment_t  fragment_;
+
+//    public:
+//      url() = delete;
+//      explicit url(buffer<>& buffer)
+//        : schem_(buffer.template get_token<>("://"))
+////        , authority_()
+//        , path_()
+////        , query_(std::make_pair<offseter<>, offseter<>>(offseter<>(), offseter<>()))
+//        , fragment_()
+//      { }
+//    };
   }  /* details_http_client_lite:: */
 
 
-
-
-
-
+  /// @namespace uri
   namespace uri {
 
-    using url_t   = details_http_client_lite::buffer;
-    using token_t = details_http_client_lite::offseter<>;
-
-
-
-    class url {
-      std::string url_;
-
-      url(const std::string& url) : url_(std::move(url)) {}
+    /// @struct verify_cond_gen_delims
+    /// @brief gen_delims - they are also "main delimiters"
+    ///
+    /// This characters that divide URIs into large components.
+    struct verify_cond_gen_delims final : public details_http_client_lite::verify_cond {
+      verify_cond_gen_delims() noexcept
+        : verify_cond({ ':', '/', '?', '#', '[', ']', '@' })
+      { }
     };
+
+
+    /// @struct verify_cond_sub_delims
+    /// @brief sub-delims - they are also "sub—delimiters"
+    ///
+    /// Thos symbols that divide the current large component into smaller components,
+    /// they are different for each component.
+    struct verify_cond_sub_delims final : public details_http_client_lite::verify_cond {
+      verify_cond_sub_delims() noexcept
+        : verify_cond({ '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=' })
+      { }
+    };
+
+
+    /// @struct verify_cond_digit
+    /// @brief digit - any number
+    ///
+    /// Sets of numbers to check (regExp [0-9])
+    struct verify_cond_digit final : public details_http_client_lite::verify_cond {
+      verify_cond_digit() noexcept
+        : verify_cond({ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' })
+      { }
+    };
+
+
+    /// @struct verify_cond_alpha
+    /// @brief alpha - any uppercase and lowercase letter of ASCII encoding
+    ///
+    /// Sets of ASCII encoding letters to check (regExp [A-Za-z])
+    struct verify_cond_alpha final : public details_http_client_lite::verify_cond {
+      verify_cond_alpha() noexcept
+        : verify_cond({
+                        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+                        'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+
+                        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+                        'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+                      })
+      { }
+    };
+
+
+    /// @struct verify_cond_hexdig
+    /// @brief hexdig - hexadecimal digit
+    ///
+    /// Sets of hexadecimal digit to check (regExp [0-9A-F])
+    struct verify_cond_hexdig final : public details_http_client_lite::verify_cond {
+      verify_cond_hexdig() noexcept
+        : verify_cond({ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                        'a', 'b', 'c', 'd', 'e', 'f',
+                        'A', 'B', 'C', 'D', 'E', 'F'
+                      })
+      { }
+    };
+
+    /// @todo TODO: pct-encoded = "%" HEXDIG HEXDIG
+
+    /// @class schem
+    /// @brief URI Schema Name
+    ///
+    /// Each URI begins with a schema name that refers to the specification for assigning
+    /// identifiers in that schema. Also, the URI syntax is a unified and extensible naming
+    /// system, moreover, the specification of each scheme can further restrict the syntax
+    /// and semantics of identifiers using this scheme.
+    /// The name of the scheme must begin with a letter and can then be continued with any
+    /// number of allowed characters.
+    class schem final : public details_http_client_lite::uri_base {
+      // Additional class with symbols to check
+      struct verify_cond_others final : public details_http_client_lite::verify_cond {
+        verify_cond_others() noexcept
+          : verify_cond({ '+', '-', '.' })
+        { }
+      };
+
+      using check_pack_t = details_http_client_lite::checker<verify_cond_alpha,
+                                                             verify_cond_digit,
+                                                             verify_cond_others>;
+
+      details_http_client_lite::buff_offset data_;
+
+    public:
+      explicit schem(details_http_client_lite::buffer_t& buffer) noexcept
+        : uri_base(buffer)
+        , data_(this->get_token<0,10, check_pack_t>("://"))
+      { }
+
+      std::string to_str() const {
+        return data_.get(this->buff_ref()).str();
+      }
+    };
+
+
+
+
+
+
+
+
+
+
+
+//    class url {
+
+
+//      details_http_client_lite::buffer<> buffer_;
+
+//      details_http_client_lite::offseter<> schem_;
+
+//    public:
+//      explicit url(std::string const& url)
+//        : buffer_(std::move(url))
+//        , schem_(buffer_.template get_token<0, 10>("://"))
+//      { }
+
+//      std::string schem() noexcept {
+//        return schem_.get(buffer_).str();
+//      }
+//    };
+
+
+
 
     struct uri {
       std::string protocol;
@@ -445,59 +873,59 @@ namespace jdl {
       }
     };
 
-    class scheme {
-      std::string name_ { "" };
+//    class scheme {
+//      std::string name_ { "" };
 
-     public:
-      scheme() = default;
-      explicit scheme(const std::string& scheme_name) noexcept : name_ { scheme_name } {}
+//     public:
+//      scheme() = default;
+//      explicit scheme(const std::string& scheme_name) noexcept : name_ { scheme_name } {}
 
-      std::string name() const { return name_; }
+//      std::string name() const { return name_; }
 
-      template <size_t _start_pos>
-      void parse(const std::string& uri) {
-        using namespace std::placeholders;
-        using details_http_client_lite::get_token;
+//      template <size_t _start_pos>
+//      void parse(const std::string& uri) {
+//        using namespace std::placeholders;
+//        using details_http_client_lite::get_token;
 
-        name_ = get_token<_start_pos>(uri, "://", std::bind(&scheme::check, this, _1));
-      }
+//        name_ = get_token<_start_pos>(uri, "://", std::bind(&scheme::check, this, _1));
+//      }
 
-     protected:
-      // TODO: Checking on rull [A-Z,a-z] [0-9] [+ - .]
-      //       Don't start on number!!!
-      bool check(const std::string&) { return true; }
-    };
+//     protected:
+//      // TODO: Checking on rull [A-Z,a-z] [0-9] [+ - .]
+//      //       Don't start on number!!!
+//      bool check(const std::string&) { return true; }
+//    };
 
-    struct authority {
-      struct userinfo {
-        std::string name_ { "" };
-        std::string pass_ { "" };
+//    struct authority {
+//      struct userinfo {
+//        std::string name_ { "" };
+//        std::string pass_ { "" };
 
-       public:
-        userinfo() = default;
-        explicit userinfo(const std::string& name, const std::string& pass) noexcept : name_ { name }, pass_ { pass } {}
+//       public:
+//        userinfo() = default;
+//        explicit userinfo(const std::string& name, const std::string& pass) noexcept : name_ { name }, pass_ { pass } {}
 
-        std::string name() const { return name_; }
-        std::string pass() const { return pass_; }
+//        std::string name() const { return name_; }
+//        std::string pass() const { return pass_; }
 
-        template <size_t _start_pos>
-        void parse(const std::string& uri) {
-          using namespace std::placeholders;
-          using details_http_client_lite::get_token;
+//        template <size_t _start_pos>
+//        void parse(const std::string& uri) {
+//          using namespace std::placeholders;
+//          using details_http_client_lite::get_token;
 
-          name_ = get_token<_start_pos>(uri, ":", std::bind(&userinfo::check, this, _1));
+//          name_ = get_token<_start_pos>(uri, ":", std::bind(&userinfo::check, this, _1));
 
-          if (name_.empty()) name_ = get_token<_start_pos>(uri, "@", std::bind(&userinfo::check, this, _1));
-          else
-            pass_ = get_token<0>(name_, "@", std::bind(&userinfo::check, this, _1));
-        }
+//          if (name_.empty()) name_ = get_token<_start_pos>(uri, "@", std::bind(&userinfo::check, this, _1));
+//          else
+//            pass_ = get_token<0>(name_, "@", std::bind(&userinfo::check, this, _1));
+//        }
 
-       protected:
-        // TODO: Checking on rull: not reserved, precent-encoding, sub-delims, ":"
-        bool check(const std::string&) { return true; }
-      };
-      struct host {};
-    };
+//       protected:
+//        // TODO: Checking on rull: not reserved, precent-encoding, sub-delims, ":"
+//        bool check(const std::string&) { return true; }
+//      };
+//      struct host {};
+//    };
 
     struct path {};
     struct query {};
