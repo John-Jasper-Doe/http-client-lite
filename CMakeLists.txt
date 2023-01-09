@@ -26,10 +26,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 option(HTTP_CLIENT_LITE_OPT_BUILD_TESTS    "Build tests" OFF)
 option(HTTP_CLIENT_LITE_OPT_BUILD_EXAMPLES "Build examples" OFF )
 
-set(CMAKE_TARGET_DEFINITIONS_CXX
-  "HTTP_CLIENT_LITE_NAMESPACE_BEGIN=namespace jdl {"
-  "HTTP_CLIENT_LITE_NAMESPACE_END=} /* jdl:: */"
-  )
+
+## Namespace sets...
+set(JDL_NAMESPACE "jdl" CACHE STRING "C++ namespace to use")
+if (NOT "${JDL_NAMESPACE}" STREQUAL "")
+    set(JDL_NAMESPACE_BEGIN "namespace ${JDL_NAMESPACE} {" CACHE STRING "Open C++ namespace to use")
+    set(JDL_NAMESPACE_END "}" CACHE STRING "Close C++ namespace to use")
+endif()
+
 
 ## Examples
 if(HTTP_CLIENT_LITE_OPT_BUILD_EXAMPLES)
@@ -50,4 +54,12 @@ target_include_directories(
     ${PROJECT_NAME}
     INTERFACE
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+target_compile_definitions(
+    ${PROJECT_NAME}
+    INTERFACE
+      "JDL_NAMESPACE=${JDL_NAMESPACE}"
+      "JDL_NAMESPACE_BEGIN=${JDL_NAMESPACE_BEGIN}"
+      "JDL_NAMESPACE_END=${JDL_NAMESPACE_END}"
+)
