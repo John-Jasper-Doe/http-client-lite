@@ -449,7 +449,7 @@ namespace common {
   /// @param os - output stream
   /// @param of - offseter
   std::ostream& operator<<(std::ostream& os, offseter<> const& of) {
-      return (os << "[ offset: " << of.offset_ << ", size: " << of.size_);
+      return (os << "[ offset: " << of.offset_ << ", size: " << of.size_ << " ]");
   }
 
 } /* common:: */
