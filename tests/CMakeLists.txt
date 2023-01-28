@@ -42,7 +42,6 @@ endfunction()
 
 #addtest(tokenizer tokenizer.cpp)
 #addtest(http_client http_client.cpp)
-#addtest(buffer)
 addtest(string_chunk)
 addtest(offseter)
 addtest(uri)
