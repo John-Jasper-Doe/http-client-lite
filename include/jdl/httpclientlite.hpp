@@ -574,16 +574,28 @@ namespace details_http_client_lite {
       : buff_ref_(buffer)
     { }
 
-    template <std::size_t POSITION = 0, int COUNT = -1, typename CHECKER = checker_default_t>
-    buff_offset get_token(std::string const& delim) {
-      string_chunk_t cnk(buff_ref_.data() + POSITION,
-                         ((COUNT < 0) ? buff_ref_.size() : (size_t)COUNT));
+    template <std::size_t POSITION = 0, size_t COUNT = 0, typename CHECKER = checker_default_t>
+    buff_offset get_token(std::string const& delim) const {
+      return get_token<POSITION, COUNT, CHECKER>(std::string(), delim);
+    }
 
-      std::size_t find_pos = cnk.find(delim);
-      if (find_pos != 0 && find_pos != std::string::npos &&
-          CHECKER()(string_chunk_t(buff_ref_.data() + POSITION, find_pos - POSITION))) {
-        return buff_offset(static_cast<buff_offset::offset_type>(POSITION),
-                           static_cast<buff_offset::offset_type>(find_pos - POSITION));
+    template <std::size_t POSITION = 0, size_t COUNT = 0, typename CHECKER = checker_default_t>
+    buff_offset get_token(std::string const& delim_start, std::string const& delim_end) const {
+      JDL_ASSERT (buff_ref_.size() > POSITION, "buff_ref_.size() > POSITION");
+      JDL_ASSERT (buff_ref_.size() > POSITION + COUNT, "buff_ref_.size() > POSITION + COUNT");
+
+      string_chunk_t cnk(buff_ref_.data() + POSITION, ((COUNT == 0) ? buff_ref_.size() : COUNT));
+
+      // Search of start position
+      std::size_t pos_start = (delim_start.size() == 0)? std::string::npos : cnk.find(delim_start);
+      pos_start = (pos_start == std::string::npos)? POSITION : pos_start + delim_start.size();
+
+      // Search of end position
+      std::size_t pos_end = cnk.find(delim_end);
+      if (pos_end != 0 && pos_end != std::string::npos &&
+          CHECKER()(string_chunk_t(buff_ref_.data() + pos_start, pos_end - pos_start))) {
+        return buff_offset(static_cast<buff_offset::offset_type>(pos_start),
+                           static_cast<buff_offset::offset_type>(pos_end - pos_start));
       }
 
       return buff_offset();

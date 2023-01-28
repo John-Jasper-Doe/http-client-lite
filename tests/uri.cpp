@@ -1,72 +1,64 @@
-#include "testhelper.hpp"
-
 #include <jdl/httpclientlite.hpp>
 
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 
-TEST_CASE_MY("Test of uri.constructor1", "[uri]") {
-//  jdl::uri::uri uri("http://ru.example.org");
 
-//  ASSERT_STREQUAL(uri.protocol, "http");
-//  ASSERT_STREQUAL(uri.address, "ru.example.org");
-//  ASSERT_STREQUAL(uri.port, "80");
-//  ASSERT_STREQUAL(uri.hash, "example.org");
-//  ASSERT_STREQUAL(uri.host, "example.org");
-//  ASSERT_STREQUAL(uri.querystring, "example.org");
-}
+using namespace jdl::details_http_client_lite;
 
-TEST_CASE_MY("Test of uri.constructor2", "[uri]") {
-//  jdl::uri::uri uri("127.0.0.1:8080");
+TEST_CASE("Test JDL of URI of base class", "[uri_base]") {
+  std::string test_buff("foo://username:password@www.example.com:8080/hello/index.html");
+  uri_base uri_base_test(test_buff);
+  buff_offset data;
 
-//  ASSERT_STREQUAL(uri.protocol, "");
-//  ASSERT_STREQUAL(uri.address, "127.0.0.1");
-//  ASSERT_STREQUAL(uri.port, "8080");
-//  ASSERT_STREQUAL(uri.host, "");
-//  ASSERT_STREQUAL(uri.query_string, "");
-}
+  // Check function get_token with end delimiter
+  SECTION("- with end delimiter [uri_base.get_token]") {
+    // With set parameters
+    data = uri_base_test.get_token<0, 10, checker_default_t>("://");
+    CHECK(data.get(uri_base_test.buff_ref()).str() == std::string("foo"));
 
-TEST_CASE_MY("Test of uri.constructor3", "[uri]") {
-//  jdl::uri::uri uri("https://duckduckgo.com/?q=gcc+warning+switch+off&t=lm&atb=v208-1&ia=web&iax=qa");
+    // With default parameters
+    data = uri_base_test.get_token<>("://");
+    CHECK(data.get(uri_base_test.buff_ref()).str() == std::string("foo"));
 
-//  ASSERT_STREQUAL(uri.protocol, "http");
-//  ASSERT_STREQUAL(uri.address, "ru.example.org");
-//  ASSERT_STREQUAL(uri.port, "80");
-//  ASSERT_STREQUAL(uri.hash, "example.org");
-//  ASSERT_STREQUAL(uri.host, "example.org");
-//  ASSERT_STREQUAL(uri.querystring, "example.org");
-}
+    // With default parameters and without delimiter
+    data = uri_base_test.get_token<>("");
+    CHECK(data == buff_offset());
+    CHECK(data.get(uri_base_test.buff_ref()).str() == std::string());
 
-TEST_CASE_MY("Test of \"Scheme\" class", "[uri]") {
-  jdl::uri::scheme scheme1("ftp");
-  jdl::uri::scheme scheme2;
-  jdl::uri::scheme scheme3;
-  jdl::uri::scheme scheme4;
-  jdl::uri::scheme scheme5;
+    // Check on invalid arguments [POSITION]
+    CHECK_THROWS_AS((uri_base_test.get_token<1000, 10, checker_default_t>("://")),
+                    std::invalid_argument);
 
-  scheme2.parse<0>("https://duckduckgo.com/?q=gcc+warning+switch+off&t=lm&atb=v208-1&ia=web&iax=qa");
-  scheme3.parse<0>("abcdefghijklmnopqrstuvwxyz");
-  scheme5.parse<2>("https://duckduckgo.com/?q=gcc+warning+switch+off&t=lm&atb=v208-1&ia=web&iax=qa");
+    CHECK_THROWS_WITH((uri_base_test.get_token<1000, 10, checker_default_t>("://")),
+                      "buff_ref_.size() > POSITION");
 
-  ASSERT_STREQUAL(scheme1.name(), "ftp");
-  ASSERT_STREQUAL(scheme2.name(), "https");
-  ASSERT_STREQUAL(scheme3.name(), "");
-  ASSERT_STREQUAL(scheme4.name(), "");
-  ASSERT_STREQUAL(scheme5.name(), "tps");
-}
+    // Check on invalid arguments [COUNT]
+    CHECK_THROWS_AS((uri_base_test.get_token<1, 1000, checker_default_t>("://")),
+                    std::invalid_argument);
 
-TEST_CASE_MY("Test of \"Userinfo\" class", "[uri]") {
-  jdl::uri::authority::userinfo userinfo1("user", "pass");
-  jdl::uri::authority::userinfo userinfo2;
-  jdl::uri::authority::userinfo userinfo3;
-  jdl::uri::authority::userinfo userinfo4;
-  jdl::uri::authority::userinfo userinfo5;
+    CHECK_THROWS_WITH((uri_base_test.get_token<1, 1000, checker_default_t>("://")),
+                      "buff_ref_.size() > POSITION + COUNT");
+  }
 
-  userinfo2.parse<6>("ftp://user2:pass2@duckduckgo.com");
-  userinfo3.parse<0>("abcdefghijklmnopqrstuvwxyz");
-  userinfo5.parse<6>("ftp://user5@duckduckgo.com");
+  // Check function get_token with start and end delimiter
+  SECTION("- with start and end delimiter [uri_base.get_token]") {
+    // With set parameters
+    data = uri_base_test.get_token<0, 20, checker_default_t>("://", ":p");
+    CHECK(data.get(uri_base_test.buff_ref()).str() == std::string("username"));
 
-  ASSERT_STREQUAL(userinfo1.name(), "user");  ASSERT_STREQUAL(userinfo1.pass(), "pass");
-  ASSERT_STREQUAL(userinfo2.name(), "user2"); ASSERT_STREQUAL(userinfo2.pass(), "pass2");
-  ASSERT_STREQUAL(userinfo3.name(), "");      ASSERT_STREQUAL(userinfo3.pass(), "");
-  ASSERT_STREQUAL(userinfo4.name(), "");      ASSERT_STREQUAL(userinfo4.pass(), "");
-  ASSERT_STREQUAL(userinfo5.name(), "user5"); ASSERT_STREQUAL(userinfo5.pass(), "");
+    // With set parameters and fragment not contain set delimiters
+    data = uri_base_test.get_token<20, 20, checker_default_t>("://", ":p");
+    CHECK(data == buff_offset());
+    CHECK(data.get(uri_base_test.buff_ref()).str() == std::string());
+
+    // With default parameters
+    data = uri_base_test.get_token<>("://", ":p");
+    CHECK(data.get(uri_base_test.buff_ref()).str() == std::string("username"));
+
+    // With default parameters and without delimiters
+    data = uri_base_test.get_token<>("", "");
+    CHECK(data == buff_offset());
+    CHECK(data.get(uri_base_test.buff_ref()).str() == std::string());
+  }
 }
