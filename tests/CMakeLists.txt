@@ -34,15 +34,16 @@ function(addtest TEST_NAME)
   )
 
   target_link_libraries(${EXEC_TEST_NAME} PRIVATE http_client_lite)
+  target_compile_definitions(${EXEC_TEST_NAME} PRIVATE NDEBUG)
 
   message(STATUS "- Append test case: ${EXEC_TEST_NAME}")
 endfunction()
 
 
 #addtest(tokenizer tokenizer.cpp)
-#addtest(uri uri.cpp)
 #addtest(http_client http_client.cpp)
 #addtest(buffer)
 addtest(string_chunk)
 addtest(offseter)
+addtest(uri)
 #addtest(url)

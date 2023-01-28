@@ -148,6 +148,15 @@ void deinit_socket() {
 #endif /* PLATFORM_WINDOWS */
 }
 
+
+#ifdef NDEBUG
+# define JDL_ASSERT(expr, msg) \
+  (static_cast<bool> (expr) ? void (0) : throw std::invalid_argument(msg))
+#else
+# define JDL_ASSERT(expr, msg)
+#endif /* NDEBUG */
+
+
 // Default data on this module
 using data_t = uint8_t;
 

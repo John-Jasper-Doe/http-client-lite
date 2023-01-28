@@ -23,6 +23,10 @@ message(STATUS "- Detected standard: ${CMAKE_CXX_STANDARD}")
 
 message(STATUS "- Build type: ${CMAKE_BUILD_TYPE}")
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_compile_definitions(NDEBUG)
+endif()
+
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-pthread -Wall -Wextra -Wpedantic -Wimplicit-fallthrough=0 -g -O0)
