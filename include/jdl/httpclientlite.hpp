@@ -522,9 +522,11 @@ namespace details_http_client_lite {
     bool operator()(string_chunk_t const& str) {
       check_pack_t check_pack;
 
-      for (char const& ch : str) {
-        if (!process<0>(ch, check_pack)) {
-          return false;
+      if (sizeof...(CHECK_PACK) != 0) {
+        for (char const& ch : str) {
+          if (!process<0>(ch, check_pack)) {
+            return false;
+          }
         }
       }
 
