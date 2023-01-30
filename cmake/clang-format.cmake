@@ -7,14 +7,13 @@ file(
     ${CMAKE_SOURCE_DIR}/include/*.hpp
     ${CMAKE_SOURCE_DIR}/examples/*.cpp
     ${CMAKE_SOURCE_DIR}/examples/*.hpp
-    ${CMAKE_SOURCE_DIR}/test/*.cpp
-    ${CMAKE_SOURCE_DIR}/test/*.hpp
+    ${CMAKE_SOURCE_DIR}/tests/*.cpp
+    ${CMAKE_SOURCE_DIR}/tests/*.hpp
 )
 
 add_custom_target(
-        clangformat
-        COMMAND clang-format
-        -style=file    ##-style=LLVM
-        -i
-        ${ALL_SOURCE_FILES}
+  clangformat
+  ALL
+  COMMAND
+    clang-format -style=file -i ${ALL_SOURCE_FILES}  ##-style=LLVM
 )
