@@ -3,9 +3,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-
 using jdl::common::offseter;
-
 
 TEST_CASE("Test JDL of Offseter", "[offseter]") {
   SECTION("Internal of types") {
@@ -22,7 +20,6 @@ TEST_CASE("Test JDL of Offseter", "[offseter]") {
     REQUIRE(std::is_same<typename offseter<uint32_t>::internel_size_type, uint32_t>::value);
   }
 
-
   SECTION("Empty offseter") {
     offseter<> offseter;
 
@@ -31,16 +28,15 @@ TEST_CASE("Test JDL of Offseter", "[offseter]") {
     REQUIRE(offseter.is_empty());
   }
 
-
   SECTION("Internel metodes of offseter") {
     offseter<> offseter_1(0, 5);
-    REQUIRE( offseter_1.offset() == 0);
-    REQUIRE( offseter_1.size() == 5);
+    REQUIRE(offseter_1.offset() == 0);
+    REQUIRE(offseter_1.size() == 5);
     REQUIRE(!offseter_1.is_empty());
 
     offseter<> offseter_2(2, 4);
-    REQUIRE( offseter_2.offset() == 2);
-    REQUIRE( offseter_2.size() == 4);
+    REQUIRE(offseter_2.offset() == 2);
+    REQUIRE(offseter_2.size() == 4);
     REQUIRE(!offseter_2.is_empty());
 
     REQUIRE(offseter_1 == offseter_1);
@@ -50,4 +46,3 @@ TEST_CASE("Test JDL of Offseter", "[offseter]") {
                    static_cast<typename offseter<uint16_t>::internel_size_type>(offseter_2.size()));
   }
 }
-

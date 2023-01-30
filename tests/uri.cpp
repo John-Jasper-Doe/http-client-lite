@@ -3,7 +3,6 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-
 using namespace jdl::details_http_client_lite;
 
 TEST_CASE("Test JDL of URI of base class", "[uri_base]") {

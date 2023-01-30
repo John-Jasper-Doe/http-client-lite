@@ -1,7 +1,6 @@
-#include "testhelper.hpp"
-
 #include <jdl/httpclientlite.hpp>
 
+#include "testhelper.hpp"
 
 TEST_CASE_MY("Test of tokenizer.next", "[tokenizer]") {
   jdl::tokenizer tz("My first test");
@@ -18,7 +17,6 @@ TEST_CASE_MY("Test of tokenizer.next", "[tokenizer]") {
   std::string actual4 = tz.next("second");
   ASSERT_STREQUAL(actual4, std::string(""));
 }
-
 
 TEST_CASE_MY("Test of tokenizer.tail", "[tokenizer]") {
   jdl::tokenizer tz("My second test");
