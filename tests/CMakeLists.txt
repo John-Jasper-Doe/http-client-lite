@@ -9,23 +9,23 @@
 ## (See accompanying file LICENSE or copy at https://mit-license.org/)
 
 
-cmake_minimum_required(VERSION 3.3)
-project(tests LANGUAGES CXX)
+cmake_minimum_required (VERSION 3.3)
+project (tests LANGUAGES CXX)
 
-message(STATUS "Configure test cases...")
+message (STATUS "Configure test cases...")
 
 ## Function for adding test cases.
-function(addtest TEST_NAME)
-  set(EXEC_TEST_NAME "${PROJECT_NAME}_${TEST_NAME}")
-  add_executable(${EXEC_TEST_NAME} ${TEST_NAME}.cpp)
+function (addtest TEST_NAME)
+  set (EXEC_TEST_NAME "${PROJECT_NAME}_${TEST_NAME}")
+  add_executable (${EXEC_TEST_NAME} ${TEST_NAME}.cpp)
 
-  add_test(
+  add_test (
     NAME ${EXEC_TEST_NAME}
     COMMAND ${EXEC_TEST_NAME}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tests
   )
 
-  set_target_properties(${EXEC_TEST_NAME}
+  set_target_properties (${EXEC_TEST_NAME}
     PROPERTIES
       CXX_STANDARD 11
       CXX_STANDARD_REQUIRED ON
@@ -33,11 +33,11 @@ function(addtest TEST_NAME)
       EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/tests
   )
 
-  target_link_libraries(${EXEC_TEST_NAME} PRIVATE http_client_lite)
-  target_compile_definitions(${EXEC_TEST_NAME} PRIVATE NDEBUG)
+  target_link_libraries (${EXEC_TEST_NAME} PRIVATE http_client_lite)
+  target_compile_definitions (${EXEC_TEST_NAME} PRIVATE NDEBUG)
 
-  message(STATUS "- Append test case: ${EXEC_TEST_NAME}")
-endfunction()
+  message (STATUS "- Append test case: ${EXEC_TEST_NAME}")
+endfunction (addtest)
 
 
 #addtest(tokenizer tokenizer.cpp)
