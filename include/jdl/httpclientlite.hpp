@@ -153,28 +153,16 @@ using data_t = uint8_t;
 
 #if __cplusplus >= 201703L  // If C++ Standart == 17
 
-template <typename TYPE>
-using is_integral_v = std::is_integral_v<TYPE>;
-
 template <bool COND, typename TYPE = void>
 using enable_if_t = typename std::enable_if_t<COND, TYPE>;
-
-template <typename TYPE, typename COMPARED_TYPE>
-JDLCXX17_INLINE constexpr bool is_same_v = std::is_same_v<TYPE, COMPARED_TYPE>;
 
 template <typename TYPE>
 using remove_cv_t = typename std::remove_cv_t<TYPE>;
 
 #elif __cplusplus >= 201402L  // If C++ Standart == 14
 
-template <typename TYPE>
-using is_integral_v = std::is_integral_v<TYPE>;
-
 template <bool COND, typename TYPE = void>
 using enable_if_t = typename std::enable_if_t<COND, TYPE>;
-
-template <typename TYPE, typename COMPARED_TYPE>
-JDLCXX17_INLINE constexpr bool is_same_v = std::is_same<TYPE, COMPARED_TYPE>::value;
 
 template <typename TYPE>
 using remove_cv_t = typename std::remove_cv_t<TYPE>;
@@ -182,14 +170,8 @@ using remove_cv_t = typename std::remove_cv_t<TYPE>;
 #else  // If C++ Standart == 11
 
 // Trates
-template <typename TYPE>
-JDLCXX17_INLINE constexpr bool is_integral_v = std::is_integral<TYPE>::value;
-
 template <bool COND, typename TYPE = void>
 using enable_if_t = typename std::enable_if<COND, TYPE>::type;
-
-template <typename TYPE, typename COMPARED_TYPE>
-JDLCXX17_INLINE constexpr bool is_same_v = std::is_same<TYPE, COMPARED_TYPE>::value;
 
 template <typename TYPE>
 using remove_cv_t = typename std::remove_cv<TYPE>::type;
@@ -199,7 +181,7 @@ using remove_pointer_t = typename std::remove_pointer<TYPE>::type;
 
 #endif /* Check C++ Standart */
 
-/// is_require_type_v
+/// is_require_type
 /// @brief Comparing the received type with the required type
 ///
 /// The resulting type is reduced to a primitive, i.e. "const" and "volatile" are removed
@@ -207,7 +189,7 @@ using remove_pointer_t = typename std::remove_pointer<TYPE>::type;
 /// @tparam CHECK_TYPE - resulting type
 /// @tparam TYPE - required type
 template <typename CHECK_TYPE, typename TYPE>
-constexpr bool is_require_type_v = is_same_v<remove_cv_t<remove_pointer_t<CHECK_TYPE>>, TYPE>;
+using is_require_type = std::is_same<remove_cv_t<remove_pointer_t<CHECK_TYPE>>, TYPE>;
 
 /// is_char_type of false_type
 /// @brief Checking whether the type is a character type
@@ -218,14 +200,10 @@ struct is_char_type : std::false_type {};
 /// @brief Checking whether the type is a character type
 template <typename TYPE>
 struct is_char_type<
-  TYPE, enable_if_t<is_require_type_v<TYPE, char> || is_require_type_v<TYPE, wchar_t> ||
-                    is_require_type_v<TYPE, char16_t> || is_require_type_v<TYPE, char32_t>>>
+  TYPE,
+  enable_if_t<is_require_type<TYPE, char>::value || is_require_type<TYPE, wchar_t>::value ||
+              is_require_type<TYPE, char16_t>::value || is_require_type<TYPE, char32_t>::value>>
   : std::true_type {};
-
-/// is_char_type_v
-/// @brief Aliase of is_char_type
-template <typename TYPE>
-constexpr bool is_char_type_v = is_char_type<TYPE>::value;
 
 class tokenizer {
   const std::string str_;
@@ -272,7 +250,7 @@ namespace common {
   /// @tparam CHAR_TYPE - Internal data type
   template <typename CHAR_TYPE = char>
   class string_chunk final {
-    static_assert(jdl::is_char_type_v<CHAR_TYPE>, "Wrong char type");
+    static_assert(jdl::is_char_type<CHAR_TYPE>::value, "Wrong char type");
 
   public:
     using value_type = CHAR_TYPE;
@@ -389,7 +367,7 @@ namespace common {
   /// @tparam OFFSET_TYPE - offset type, by default "uint16_t"
   template <typename OFFSET_TYPE = uint16_t>
   struct offseter {
-    static_assert(jdl::is_integral_v<OFFSET_TYPE>, "Wrong type, should be integral");
+    static_assert(std::is_integral<OFFSET_TYPE>::value, "Wrong type, should be integral");
 
     using offset_type = OFFSET_TYPE;
     using size_type = size_t;

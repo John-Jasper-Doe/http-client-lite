@@ -7,22 +7,22 @@ using jdl::details_http_client_lite::string_chunk_t;
 
 TEST_CASE("Test JDL of String Chunk", "[string_chunk]") {
   SECTION("Internal of types") {
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::value_type, char>);
+    REQUIRE(std::is_same<typename string_chunk_t::value_type, char>::value);
 
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::pointer, char*>);
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::const_pointer, char const*>);
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::reference, char&>);
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::const_reference, char const&>);
+    REQUIRE(std::is_same<typename string_chunk_t::pointer, char*>::value);
+    REQUIRE(std::is_same<typename string_chunk_t::const_pointer, char const*>::value);
+    REQUIRE(std::is_same<typename string_chunk_t::reference, char&>::value);
+    REQUIRE(std::is_same<typename string_chunk_t::const_reference, char const&>::value);
 
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::iterator, char const*>);
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::const_iterator, char const*>);
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::reverse_iterator,
-                           typename std::reverse_iterator<char const*>>);
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::const_reverse_iterator,
-                           typename std::reverse_iterator<char const*>>);
+    REQUIRE(std::is_same<typename string_chunk_t::iterator, char const*>::value);
+    REQUIRE(std::is_same<typename string_chunk_t::const_iterator, char const*>::value);
+    REQUIRE(std::is_same<typename string_chunk_t::reverse_iterator,
+                         typename std::reverse_iterator<char const*>>::value);
+    REQUIRE(std::is_same<typename string_chunk_t::const_reverse_iterator,
+                         typename std::reverse_iterator<char const*>>::value);
 
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::size_type, std::size_t>);
-    REQUIRE(jdl::is_same_v<typename string_chunk_t::difference_type, std::ptrdiff_t>);
+    REQUIRE(std::is_same<typename string_chunk_t::size_type, std::size_t>::value);
+    REQUIRE(std::is_same<typename string_chunk_t::difference_type, std::ptrdiff_t>::value);
   }
 
   SECTION("String_chunk of constructed by default") {
