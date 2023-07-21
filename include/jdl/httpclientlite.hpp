@@ -28,6 +28,16 @@
 
 #pragma once
 
+#define httpc_lite_MAJOR 0
+#define httpc_lite_MINOR 10
+#define httpc_lite_PATCH 3
+
+//#define httpc_lite_VERSION  httpc_STRINGIFY(span_lite_MAJOR) "." httpc_STRINGIFY(span_lite_MINOR)
+//"." httpc_STRINGIFY(span_lite_PATCH)
+
+//#define span_STRINGIFY(  x )  span_STRINGIFY_( x )
+//#define span_STRINGIFY_( x )  #x
+
 #if defined(__linux__)
 #  define PLATFORM_LINUX
 #elif defined(_WIN32) || defined(_WIN64)
@@ -72,6 +82,14 @@ typedef int socklen_t;
 typedef int socktype_t;
 
 #endif /* PLATFORM_WINDOWS or PLATFORM_LINUX */
+
+#if __cplusplus >= 201703L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201703L)
+#  define httpc_HAVE_CPP17
+#endif
+
+#if __cplusplus >= 201402L || (defined(_MSVC_LANG) && _MSVC_LANG >= 201402L)
+#  define httpc_HAVE_CPP14
+#endif
 
 #if __cplusplus
 
@@ -529,14 +547,9 @@ namespace details_http_client_lite {
     explicit uri_base(buffer_t& buffer) noexcept : buff_ref_(buffer) {}
 
     template <std::size_t POSITION = 0, size_t COUNT = 0, typename CHECKER = checker_default_t>
-    buff_offset get_token(std::string const& delim) const {
-      return get_token<POSITION, COUNT, CHECKER>(std::string(), delim);
-    }
-
-    template <std::size_t POSITION = 0, size_t COUNT = 0, typename CHECKER = checker_default_t>
     buff_offset get_token(std::string const& delim_start, std::string const& delim_end) const {
-      JDL_ASSERT(buff_ref_.size() > POSITION, "buff_ref_.size() > POSITION");
-      JDL_ASSERT(buff_ref_.size() > POSITION + COUNT, "buff_ref_.size() > POSITION + COUNT");
+      JDL_ASSERT(buff_ref_.size() > POSITION, "buff_ref_.size() <= POSITION");
+      JDL_ASSERT(buff_ref_.size() >= POSITION + COUNT, "buff_ref_.size() < POSITION + COUNT");
 
       string_chunk_t cnk(buff_ref_.data() + POSITION, ((COUNT == 0) ? buff_ref_.size() : COUNT));
 
@@ -553,6 +566,11 @@ namespace details_http_client_lite {
       }
 
       return buff_offset();
+    }
+
+    template <std::size_t POSITION = 0, size_t COUNT = 0, typename CHECKER = checker_default_t>
+    buff_offset get_token(std::string const& delim) const {
+      return this->get_token<POSITION, COUNT, CHECKER>(std::string(), delim);
     }
 
     const_buffer_t& buff_ref() const {
@@ -693,7 +711,7 @@ namespace uri {
     details_http_client_lite::buff_offset data_;
 
   public:
-    explicit schem(details_http_client_lite::buffer_t& buffer) noexcept
+    explicit schem(details_http_client_lite::buffer_t& buffer)
       : uri_base(buffer), data_(this->get_token<0, 10, check_pack_t>("://")) {}
 
     std::string to_str() const {

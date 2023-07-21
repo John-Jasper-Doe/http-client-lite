@@ -30,14 +30,14 @@ TEST_CASE("Test JDL of URI of base class", "[uri_base]") {
                     std::invalid_argument);
 
     CHECK_THROWS_WITH((uri_base_test.get_token<1000, 10, checker_default_t>("://")),
-                      "buff_ref_.size() > POSITION");
+                      "buff_ref_.size() <= POSITION");
 
     // Check on invalid arguments [COUNT]
     CHECK_THROWS_AS((uri_base_test.get_token<1, 1000, checker_default_t>("://")),
                     std::invalid_argument);
 
     CHECK_THROWS_WITH((uri_base_test.get_token<1, 1000, checker_default_t>("://")),
-                      "buff_ref_.size() > POSITION + COUNT");
+                      "buff_ref_.size() < POSITION + COUNT");
   }
 
   // Check function get_token with start and end delimiter
@@ -59,5 +59,28 @@ TEST_CASE("Test JDL of URI of base class", "[uri_base]") {
     data = uri_base_test.get_token<>("", "");
     CHECK(data == buff_offset());
     CHECK(data.get(uri_base_test.buff_ref()).str() == std::string());
+  }
+}
+
+TEST_CASE("Test JDL of URI of schema class", "[uri::schema]") {
+  SECTION("- case #1 - Normal URI [schema.to_str()]") {
+    std::string test_buff("schema://username:password@www.example.com:8080/hello/index.html");
+    jdl::uri::schem schema_test(test_buff);
+
+    CHECK(schema_test.to_str() == std::string("schema"));
+  }
+
+  SECTION("- case #2 - Without schema [schema.to_str()]") {
+    std::string test_buff("username:password@www.example.com:8080/hello/index.html");
+    jdl::uri::schem schema_test(test_buff);
+
+    CHECK(schema_test.to_str() == std::string(""));
+  }
+
+  SECTION("- case #3 - Null string [schema.to_str()]") {
+    std::string test_buff("");
+
+    CHECK_THROWS_AS((jdl::uri::schem(test_buff)), std::invalid_argument);
+    CHECK_THROWS_WITH((jdl::uri::schem(test_buff)), "buff_ref_.size() <= POSITION");
   }
 }
