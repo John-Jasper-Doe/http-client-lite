@@ -1,4 +1,4 @@
-# HTTP Client lite: C++ Cross-platform library only from single-file header-only
+# HTTP Client lite: C++ Cross-platform header-only library
 
 This is a lite, C++ cross-platform header-only client library for http request based 
 on [csachs/picohttpclient](https://github.com/csachs/picohttpclient) project.
@@ -12,19 +12,22 @@ without adding larger dependencies to a project.
 http client lite  is distributed under the [MIT License](https://github.com/john-jasper-doe/http-client-lite/blob/master/LICENSE).
 
 
-## Example usage
+## Headers
 
-To see how this can be used see the examples folders.
-
-
-**Example:**
 ```C++
-#include <jdl/httpclientlite.hpp>
-...
-using namespace jdl;
-...
-HTTPResponse response = HTTPClient::request(HTTPClient::GET, URI("http://example.com"));
-cout << response.body << endl;
-...
+#include <httpclientlite/common/common.hpp>
+#include <httpclientlite/core/components.hpp>
+#include <httpclientlite/core/grammar.hpp>
+#include <httpclientlite/core/parser.hpp>
+#include <httpclientlite/core/rule.hpp>
+```
+
+
+## Building tests
+
+```bash
+cmake -B build -DHTTP_CLIENT_LITE_BUILD_TESTS=ON
+cmake --build build
+ctest --test-dir build
 ```
 

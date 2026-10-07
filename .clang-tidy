@@ -1,11 +1,21 @@
 ---
-Checks:          '-*,clang-diagnostic-*,clang-analyzer-*,-readability-*,concurrency-*,cppcoreguidelines-*'
+#Checks:          '-*,clang-diagnostic-*,clang-analyzer-*,-readability-*,concurrency-*,cppcoreguidelines-*'
+Checks: >
+  clang-analyzer-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  bugprone-*,
+  cppcoreguidelines-*,
+  -modernize-use-trailing-return-type  # Exclude for check
+HeaderFilterRegex: '^include/'
 WarningsAsErrors: ''
-HeaderFilterRegex: ''
-AnalyzeTemporaryDtors: false
-FormatStyle:     none
+HeaderFileExtensions: ['', 'h','hh','hpp','hxx']
+ImplementationFileExtensions: ['c','cc','cpp','cxx']
+# AnalyzeTemporaryDtors: false
+FormatStyle:     file
 User:            John
 CheckOptions:
-  -key=cppcoreguidelines-pro-bounds-pointer-arithmetic
-   value=0
+  modernize-use-nullptr.NullMacros: 'NULL'  # Check for replace 'NULL' on 'nullptr'
+  cppcoreguidelines-pro-bounds-pointer-arithmetic: 0
 ...

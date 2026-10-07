@@ -9,55 +9,37 @@
 ## (See accompanying file LICENSE or copy at https://mit-license.org/)
 
 
-cmake_minimum_required (VERSION 3.3)
+cmake_minimum_required (VERSION 3.20)
 project (http_client_lite LANGUAGES CXX)
+
 
 ## Adding a path with "cmake" modules to the system search paths.
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include (compiler)
-include (clang-format)
-include (clang-tidy)
 
-## Set output binary
+## Settings...
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 ## Options...
-option (HTTP_CLIENT_LITE_OPT_BUILD_TESTS "Build tests" OFF)
-option (HTTP_CLIENT_LITE_OPT_BUILD_EXAMPLES "Build examples" OFF)
+option (HTTP_CLIENT_LITE_BUILD_TESTS "Build tests" OFF)
+option (HTTP_CLIENT_LITE_BUILD_EXAMPLES "Build examples" OFF)
 
 
-## Namespace sets...
-set (JDL_NAMESPACE "jdl" CACHE STRING "C++ namespace to use")
-if (NOT "${JDL_NAMESPACE}" STREQUAL "")
-    set (JDL_NAMESPACE_BEGIN "namespace ${JDL_NAMESPACE} {" CACHE STRING "Open C++ namespace to use")
-    set (JDL_NAMESPACE_END "}" CACHE STRING "Close C++ namespace to use")
-endif ()
+## Create file lists of project ...
+get_filename_component (CURRENT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} NAME)
 
+file (GLOB_RECURSE ${CURRENT_DIRECTORY}_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/*.h*)
 
-## Examples
-if (HTTP_CLIENT_LITE_OPT_BUILD_EXAMPLES)
-  add_subdirectory (examples)
-endif ()
-
-## Tests
-if (HTTP_CLIENT_LITE_OPT_BUILD_TESTS)
-  enable_testing ()
-  add_subdirectory (tests)
-endif ()
+list (APPEND ${PROJECT_NAME}_HEADERS ${${CURRENT_DIRECTORY}_HEADERS})
 
 # Interface library
 add_library (${PROJECT_NAME} INTERFACE)
 target_sources (
-  ${PROJECT_NAME}
-  INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/jdl/httpclientlite.hpp
-)
-add_custom_target (
-  ${PROJECT_NAME}.hdr
-  SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/jdl/httpclientlite.hpp
+	${PROJECT_NAME}
+	INTERFACE
+		${${PROJECT_NAME}_HEADERS}
 )
 target_include_directories (
     ${PROJECT_NAME}
@@ -65,10 +47,19 @@ target_include_directories (
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
-target_compile_definitions (
-    ${PROJECT_NAME}
-    INTERFACE
-      "JDL_NAMESPACE=${JDL_NAMESPACE}"
-      "JDL_NAMESPACE_BEGIN=${JDL_NAMESPACE_BEGIN}"
-      "JDL_NAMESPACE_END=${JDL_NAMESPACE_END}"
-)
+
+
+## Examples
+if (HTTP_CLIENT_LITE_BUILD_EXAMPLES)
+	message (STATUS "Build with examples...")
+	add_subdirectory (examples)
+endif (HTTP_CLIENT_LITE_BUILD_EXAMPLES)
+
+## Tests
+if (HTTP_CLIENT_LITE_BUILD_TESTS)
+	message (STATUS "Build with tests...")
+	enable_testing ()
+	include (catch2)
+	add_subdirectory (tests)
+endif (HTTP_CLIENT_LITE_BUILD_TESTS)
+

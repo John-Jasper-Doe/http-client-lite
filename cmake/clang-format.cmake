@@ -21,5 +21,7 @@ if (CLANG_FORMAT)
     ALL
     COMMAND
       clang-format -style=file -i ${ALL_SOURCE_FILES}  ##-style=LLVM
+    COMMENT 
+      "Running clang-format"
   )
 endif ()

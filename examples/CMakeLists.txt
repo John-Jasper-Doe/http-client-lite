@@ -1,12 +1,12 @@
-cmake_minimum_required (VERSION 3.3 FATAL_ERROR)
-project (examples)
+# Function for adding examples.
+function (add_examples TARGET_NAME FILE_NAME)
+	set (EXAMPLE_NAME "example_${TARGET_NAME}")
+	add_executable (${EXAMPLE_NAME} ${FILE_NAME})
+	target_link_libraries (${EXAMPLE_NAME} PRIVATE http_client_lite)
+	message (STATUS "- Append examples: ${EXAMPLE_NAME}")
+endfunction (add_examples)
 
-function (add_exec CPP_FILE_NAME)
-  add_executable (${PROJECT_NAME}_${CPP_FILE_NAME} ${CPP_FILE_NAME}.cpp)
-  target_link_libraries (${PROJECT_NAME}_${CPP_FILE_NAME} PRIVATE http_client_lite)
-  set_target_properties (${PROJECT_NAME}_${CPP_FILE_NAME} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY}")
-endfunction (add_exec)
 
-add_exec(simple_request)
-add_exec(sandbox)
+message (STATUS "Configure examples...")
 
+add_examples (uri_parse uri_parse.cpp)
