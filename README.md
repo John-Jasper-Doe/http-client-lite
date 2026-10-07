@@ -31,3 +31,23 @@ cmake --build build
 ctest --test-dir build
 ```
 
+
+## Code style
+
+The code is formatted with [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
+(`.clang-format`: 100 columns, 2-space indent, attached braces, single-statement
+bodies wrapped in braces).
+
+Manual formatting via CMake target:
+
+```bash
+cmake --build build --target clang_format
+```
+
+Pre-commit hook formats staged C/C++ files automatically. Enable it once per clone:
+
+```bash
+git config core.hooksPath hooks
+```
+
+

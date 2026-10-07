@@ -1,0 +1,25 @@
+#!/bin/sh
+# Auto-format staged C/C++ sources with clang-format before commit.
+# Install once per clone:  git config core.hooksPath hooks
+# Bypass a single commit:  git commit --no-verify
+
+if ! command -v clang-format >/dev/null 2>&1; then
+  echo "pre-commit: clang-format not found in PATH (install it or use --no-verify)" >&2
+  exit 1
+fi
+
+files=$(git diff --cached --name-only --diff-filter=ACM |
+  grep -E '\.(h|hh|hpp|hxx|c|cc|cpp|cxx)$')
+
+[ -z "$files" ] && exit 0
+
+echo "$files" | xargs -r clang-format -style=file -i
+
+changed=$(echo "$files" | xargs -r git diff --name-only --)
+if [ -n "$changed" ]; then
+  echo "pre-commit: formatted and re-staged:"
+  printf '%s\n' "$changed"
+  echo "$files" | xargs -r git add --
+fi
+
+exit 0

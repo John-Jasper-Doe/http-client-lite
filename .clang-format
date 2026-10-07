@@ -7,6 +7,10 @@ AlignEscapedNewlines: Left
 AlignOperands: 'true'
 AlignTrailingComments: 'true'
 AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: 'false'
+BraceWrapping:
+  BeforeElse: 'true'
 BreakAfterJavaFieldAnnotations: 'true'
 BreakBeforeBraces: Custom
 BreakConstructorInitializers: BeforeComma
@@ -14,7 +18,7 @@ BreakInheritanceList: BeforeComma
 BreakStringLiterals: 'true'
 ColumnLimit: '100'
 ConstructorInitializerIndentWidth: '2'
-ContinuationIndentWidth: '2'
+ContinuationIndentWidth: '0'
 Cpp11BracedListStyle: 'false'
 DerivePointerAlignment: 'true'
 DisableFormat: 'false'
@@ -24,8 +28,10 @@ IndentCaseLabels: 'true'
 IndentPPDirectives: AfterHash
 IndentWidth: '2'
 IndentWrappedFunctionNames: 'false'
+InsertBraces: 'true'
 Language: Cpp
 NamespaceIndentation: All
+PackConstructorInitializers: 'Never'
 PointerAlignment: Left
 ReflowComments: 'true'
 SortIncludes: 'true'
@@ -43,6 +49,6 @@ SpacesInContainerLiterals: 'true'
 SpacesInParentheses: 'false'
 SpacesInSquareBrackets: 'false'
 TabWidth: '2'
-UseTab: Always
+UseTab: Never
 
 ...

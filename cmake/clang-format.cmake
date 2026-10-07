@@ -18,9 +18,8 @@ if (CLANG_FORMAT)
 
   add_custom_target (
     clang_format
-    ALL
     COMMAND
-      clang-format -style=file -i ${ALL_SOURCE_FILES}  ##-style=LLVM
+      clang-format -style=file -i ${ALL_SOURCE_FILES}
     COMMENT 
       "Running clang-format"
   )
