@@ -58,10 +58,12 @@ cmake -B build -DSTYLE_CHECK=OFF
 
 [cppcheck](https://cppcheck.sourceforge.io/) and
 [clang-tidy](https://clang.llvm.org/extra/clang-tidy/) run automatically
-before every compilation and **cannot be disabled**: the build fails on any
-finding, and the configuration fails when a required tool is missing — all
-missing tools are reported at once with an installation hint
-(`sudo apt-get install cppcheck clang-tidy clang-format`).
+before every compilation and cannot be turned off per target: the build
+fails on any finding, and the configuration fails when a required tool is
+missing — all missing tools are reported at once with an installation hint
+(`sudo apt-get install cppcheck clang-tidy clang-format`). The
+`HTTP_CLIENT_LITE_ENABLE_CHECKS` option (ON by default) exists only for
+the nested tooling builds of the `sanitizer` and `coverage` targets.
 
 The order per translation unit is fixed: `cppcheck` -> `clang-tidy` ->
 compilation. Both checks are executed by the `cmake/check-pipeline.sh`
@@ -86,5 +88,38 @@ To silence a false positive, put an inline suppression on the line above
 // cppcheck-suppress <check-id>
 // NOLINT(<check-name>)
 ```
+
+
+## Runtime analysis (valgrind / sanitizer / coverage)
+
+Separate build targets run the test binaries under external tools. A
+missing tool only disables the corresponding target with a setup hint at
+configure time:
+
+```bash
+cmake --build build --target valgrind    # memcheck every test binary
+cmake --build build --target sanitizer   # nested ASan+UBSan build + tests
+cmake --build build --target coverage    # nested --coverage build + summary
+```
+
+- `valgrind` runs `valgrind --leak-check=full` on each test binary; any
+  error or definite/possible leak fails the target
+  (`sudo apt-get install valgrind`).
+- `sanitizer` configures a nested Debug build with
+  `-fsanitize=address,undefined`, builds it and runs the tests with
+  `ASAN_OPTIONS=halt_on_error=1:detect_leaks=1` and
+  `UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1`; any finding fails
+  the target. The nested build lives in `build/sanitizer/` and never
+  overwrites the main build binaries. The set of sanitizers can be
+  changed manually with `-DENABLE_SANITIZER=...`.
+- `coverage` builds a nested instrumented Debug build (`--coverage`),
+  runs the tests and prints a per-file line/branch coverage summary for
+  `include/httpclientlite/` into the log. When
+  [gcovr](https://gcovr.com/) is installed, an HTML report is written to
+  `build/coverage/html/` as well (`sudo apt-get install gcovr`).
+
+The nested builds reuse the already fetched Catch2 sources and skip the
+static analysis pipeline (`-DHTTP_CLIENT_LITE_ENABLE_CHECKS=OFF`) for
+speed.
 
 

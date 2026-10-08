@@ -18,20 +18,40 @@ list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include (compiler)
 
 ## Settings...
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+# Nested tooling builds (sanitizer/coverage targets) override the output
+# directories via -D; the defaults below apply only when not provided.
+if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+  set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+endif (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+  set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+endif (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+  set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+endif (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
 
 ## Options...
 option (HTTP_CLIENT_LITE_BUILD_TESTS "Build tests" OFF)
 option (HTTP_CLIENT_LITE_BUILD_EXAMPLES "Build examples" OFF)
 option (STYLE_CHECK "Check code style before every build" ON)
+option (HTTP_CLIENT_LITE_ENABLE_CHECKS
+  "Static analysis and style checks before every build" ON)
 
 ## Checks...
-include (check-tools)
-include (cppcheck)
-include (clang-tidy)
-include (style-check)
+# The option exists for nested tooling builds (sanitizer/coverage targets);
+# keep it ON for regular builds.
+if (HTTP_CLIENT_LITE_ENABLE_CHECKS)
+  include (check-tools)
+  include (cppcheck)
+  include (clang-tidy)
+  include (style-check)
+endif (HTTP_CLIENT_LITE_ENABLE_CHECKS)
+
+## Runtime instrumentation (before the targets are created: the flags are
+## directory properties; the `sanitizer`/`coverage` targets are deferred
+## until all directories are processed)
+include (sanitizer)
+include (coverage)
 
 
 ## Create file lists of project ...
@@ -69,4 +89,8 @@ if (HTTP_CLIENT_LITE_BUILD_TESTS)
 	include (catch2)
 	add_subdirectory (tests)
 endif (HTTP_CLIENT_LITE_BUILD_TESTS)
+
+## Runtime analysis (separate build target: valgrind; sanitizer/coverage
+## targets are created by the deferred functions from the modules above)
+include (valgrind)
 

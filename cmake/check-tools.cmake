@@ -27,7 +27,8 @@ if (MISSING_TOOLS)
   list (JOIN MISSING_TOOLS ", " MISSING_TOOLS_TEXT)
   message (FATAL_ERROR
     "Missing required tools: ${MISSING_TOOLS_TEXT}.\n"
-    "These tools are needed by the project checks (they cannot be disabled).\n"
+    "These tools are needed by the project checks"
+    " (HTTP_CLIENT_LITE_ENABLE_CHECKS is ON).\n"
     "Install them, e.g.: sudo apt-get install cppcheck clang-tidy clang-format"
   )
 endif ()

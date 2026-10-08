@@ -54,6 +54,8 @@ function (add_test_executable TARGET_NAME FILE_NAME)
 		EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/tests
 	)
 
+	set_property (GLOBAL APPEND PROPERTY HTTP_CLIENT_LITE_TEST_EXES ${EXECUTABLE_TEST_NAME})
+
 	target_include_directories (${EXECUTABLE_TEST_NAME} SYSTEM PRIVATE ${catch2test_SOURCE_DIR}/src)
 	target_link_libraries (${EXECUTABLE_TEST_NAME} PRIVATE http_client_lite Catch2::Catch2WithMain)
 	target_compile_definitions (${EXECUTABLE_TEST_NAME} PRIVATE NDEBUG)
