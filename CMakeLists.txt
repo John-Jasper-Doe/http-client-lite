@@ -30,22 +30,18 @@ if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
   set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 endif (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
 
+# Used by the run_checks step (clang-tidy looks the flags up per source).
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 ## Options...
 option (HTTP_CLIENT_LITE_BUILD_TESTS "Build tests" ON)
 option (HTTP_CLIENT_LITE_BUILD_EXAMPLES "Build examples" OFF)
-option (STYLE_CHECK "Check code style before every build" ON)
-option (HTTP_CLIENT_LITE_ENABLE_CHECKS
-  "Static analysis and style checks before every build" ON)
+option (HTTP_CLIENT_LITE_STYLE_CHECK
+  "Check code style (clang-format) as part of the run_checks step" ON)
 
 ## Checks...
-# The option exists for nested tooling builds (sanitizer/coverage targets);
-# keep it ON for regular builds.
-if (HTTP_CLIENT_LITE_ENABLE_CHECKS)
-  include (check-tools)
-  include (cppcheck)
-  include (clang-tidy)
-  include (style-check)
-endif (HTTP_CLIENT_LITE_ENABLE_CHECKS)
+include (check-tools)
+include (cppcheck)
 
 ## Runtime instrumentation (before the targets are created: the flags are
 ## directory properties; the `sanitizer`/`coverage` targets are deferred
@@ -109,7 +105,10 @@ if (HTTP_CLIENT_LITE_BUILD_TESTS)
 	endforeach (EXAMPLE_EXE IN LISTS EXAMPLE_EXES)
 endif (HTTP_CLIENT_LITE_BUILD_TESTS)
 
-## Runtime analysis (separate build target: valgrind; sanitizer/coverage
+## Code checks (the `run_checks` step gates the test/example binaries)
+include (run-checks)
+
+## Runtime analysis (separate build targets: valgrind; sanitizer/coverage
 ## targets are created by the deferred functions from the modules above)
 include (valgrind)
 

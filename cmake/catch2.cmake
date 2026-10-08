@@ -56,6 +56,10 @@ function (add_test_executable TARGET_NAME FILE_NAME)
 
 	set_property (GLOBAL APPEND PROPERTY HTTP_CLIENT_LITE_TEST_EXES ${EXECUTABLE_TEST_NAME})
 
+	set (CHECK_SOURCE ${FILE_NAME})
+	cmake_path (ABSOLUTE_PATH CHECK_SOURCE BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+	set_property (GLOBAL APPEND PROPERTY HTTP_CLIENT_LITE_CHECK_SOURCES ${CHECK_SOURCE})
+
 	target_include_directories (${EXECUTABLE_TEST_NAME} SYSTEM PRIVATE ${catch2test_SOURCE_DIR}/src)
 	target_link_libraries (${EXECUTABLE_TEST_NAME} PRIVATE http_client_lite Catch2::Catch2WithMain)
 	target_compile_definitions (${EXECUTABLE_TEST_NAME} PRIVATE NDEBUG)

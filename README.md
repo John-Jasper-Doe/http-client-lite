@@ -62,30 +62,34 @@ files automatically on every commit (enable once per clone):
 git config core.hooksPath hooks
 ```
 
-Alternatively, keep the `STYLE_CHECK` option enabled (it is ON by default):
-before every build the whole codebase is verified with `clang-format --dry-run`,
-and the build fails on any violation. Disable it with:
+Alternatively, keep the `HTTP_CLIENT_LITE_STYLE_CHECK` option enabled (it
+is ON by default): the `run_checks` build step verifies the whole codebase
+with `clang-format --dry-run` before the test/example binaries are built,
+and the build fails on any violation. Disable the style stage with:
 
 ```bash
-cmake -B build -DSTYLE_CHECK=OFF
+cmake -B build -DHTTP_CLIENT_LITE_STYLE_CHECK=OFF
 ```
 
 
-## Static analysis (cppcheck + clang-tidy)
+## Code checks (cppcheck + clang-tidy)
 
 [cppcheck](https://cppcheck.sourceforge.io/) and
-[clang-tidy](https://clang.llvm.org/extra/clang-tidy/) run automatically
-before every compilation and cannot be turned off per target: the build
-fails on any finding, and the configuration fails when a required tool is
-missing — all missing tools are reported at once with an installation hint
-(`sudo apt-get install cppcheck clang-tidy clang-format`). The
-`HTTP_CLIENT_LITE_ENABLE_CHECKS` option (ON by default) exists only for
-the nested tooling builds of the `sanitizer` and `coverage` targets.
+[clang-tidy](https://clang.llvm.org/extra/clang-tidy/) run as the
+`run_checks` build step, before the test and example binaries are
+compiled: any finding fails the step and stops the build, so nothing is
+built from unchecked sources. The step is stamped and re-runs only when
+the checked sources or the `.clang-tidy` configuration change. The
+configuration fails when a required tool is missing — all missing tools
+are reported at once with an installation hint
+(`sudo apt-get install cppcheck clang-tidy clang-format`).
 
-The order per translation unit is fixed: `cppcheck` -> `clang-tidy` ->
-compilation. Both checks are executed by the `cmake/check-pipeline.sh`
-wrapper, and each step is echoed into the build log
-(`[check] cppcheck start: ...`, `[check] clang-tidy start: ...`).
+The order per run is fixed: `clang-format` (when `HTTP_CLIENT_LITE_STYLE_CHECK`
+is ON) -> `cppcheck` -> `clang-tidy`; each step is echoed into the build
+log (`[check] clang-format start`, `[check] cppcheck start`,
+`[check] clang-tidy start`). The set of analyzed sources follows what is
+about to be built (the test sources when tests are enabled, the example
+sources when examples are enabled).
 
 The cppcheck check is pedantic: `--inconclusive`, `--check-level=exhaustive`,
 `--force` (all `#ifdef` configurations); warnings, style, performance,
@@ -136,7 +140,6 @@ cmake --build build --target coverage    # nested --coverage build + summary
   `build/coverage/html/` as well (`sudo apt-get install gcovr`).
 
 The nested builds reuse the already fetched Catch2 sources and skip the
-static analysis pipeline (`-DHTTP_CLIENT_LITE_ENABLE_CHECKS=OFF`) for
-speed.
+style stage of `run_checks` (`-DHTTP_CLIENT_LITE_STYLE_CHECK=OFF`).
 
 
