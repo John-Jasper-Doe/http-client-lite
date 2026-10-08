@@ -16,6 +16,7 @@ project (http_client_lite LANGUAGES CXX)
 ## Adding a path with "cmake" modules to the system search paths.
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include (compiler)
+include (version)
 
 ## Settings...
 # Nested tooling builds (sanitizer/coverage targets) override the output
@@ -95,6 +96,7 @@ if (HTTP_CLIENT_LITE_BUILD_TESTS)
 		USES_TERMINAL
 		VERBATIM
 	)
+	add_dependencies (run_tests version)
 	get_property (TEST_EXES GLOBAL PROPERTY HTTP_CLIENT_LITE_TEST_EXES)
 	add_dependencies (run_tests ${TEST_EXES})
 
@@ -107,6 +109,9 @@ endif (HTTP_CLIENT_LITE_BUILD_TESTS)
 
 ## Code checks (the `run_checks` step gates the test/example binaries)
 include (run-checks)
+if (TARGET run_checks)
+	add_dependencies (run_checks version)
+endif (TARGET run_checks)
 
 ## Runtime analysis (separate build targets: valgrind; sanitizer/coverage
 ## targets are created by the deferred functions from the modules above)
