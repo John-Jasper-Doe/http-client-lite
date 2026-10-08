@@ -16,6 +16,7 @@
 /// terminator is missing. Steps with `sub` are groups: the region
 /// delimited by `stop` is processed recursively by the nested rules.
 
+#include <algorithm>
 #include <cstddef>
 #include <string_view>
 
@@ -76,14 +77,13 @@ namespace core {
     /// @brief First occurrence of any of `chars` in [pos, bound)
     inline std::size_t find_any(const char* data, std::size_t pos, std::size_t bound,
                                 std::string_view chars) {
-      for (std::size_t i = pos; i < bound; ++i) {
-        for (char c : chars) {
-          if (data[i] == c) {
-            return i;
-          }
-        }
+      if (bound <= pos) {
+        return npos;
       }
-      return npos;
+      auto const it = std::find_if(data + pos, data + bound, [&chars](char c) {
+        return chars.find(c) != std::string_view::npos;
+      });
+      return it == data + bound ? npos : static_cast<std::size_t>(it - data);
     }
 
     /// @brief True if `p` matches `data` at `pos` within [pos, bound)

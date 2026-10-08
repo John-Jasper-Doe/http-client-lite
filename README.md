@@ -36,18 +36,41 @@ ctest --test-dir build
 
 The code is formatted with [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
 (`.clang-format`: 100 columns, 2-space indent, attached braces, single-statement
-bodies wrapped in braces).
+bodies wrapped in braces, `else` on its own line).
 
-Manual formatting via CMake target:
-
-```bash
-cmake --build build --target clang_format
-```
-
-Pre-commit hook formats staged C/C++ files automatically. Enable it once per clone:
+Before starting work, enable the pre-commit hook — it formats staged C/C++
+files automatically on every commit (enable once per clone):
 
 ```bash
 git config core.hooksPath hooks
+```
+
+Alternatively, keep the `STYLE_CHECK` option enabled (it is ON by default):
+before every build the whole codebase is verified with `clang-format --dry-run`,
+and the build fails on any violation. Disable it with:
+
+```bash
+cmake -B build -DSTYLE_CHECK=OFF
+```
+
+
+## Static analysis (cppcheck)
+
+[cppcheck](https://cppcheck.sourceforge.io/) runs automatically before every
+compilation and **cannot be disabled**: the build fails on any finding, and
+the configuration fails when cppcheck is not installed
+(`sudo apt-get install cppcheck`).
+
+The check is pedantic: `--inconclusive`, `--check-level=exhaustive`,
+`--force` (all `#ifdef` configurations); warnings, style, performance,
+portability and information findings are treated as errors
+(`--error-exitcode=1`).
+
+To silence a false positive, put an inline suppression on the line above
+(the build stays green):
+
+```c++
+// cppcheck-suppress <check-id>
 ```
 
 

@@ -25,6 +25,11 @@ set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 ## Options...
 option (HTTP_CLIENT_LITE_BUILD_TESTS "Build tests" OFF)
 option (HTTP_CLIENT_LITE_BUILD_EXAMPLES "Build examples" OFF)
+option (STYLE_CHECK "Check code style before every build" ON)
+
+## Checks...
+include (cppcheck)
+include (style-check)
 
 
 ## Create file lists of project ...
