@@ -1,5 +1,4 @@
 ---
-#Checks:          '-*,clang-diagnostic-*,clang-analyzer-*,-readability-*,concurrency-*,cppcoreguidelines-*'
 Checks: >
   clang-analyzer-*,
   modernize-*,
@@ -7,15 +6,23 @@ Checks: >
   readability-*,
   bugprone-*,
   cppcoreguidelines-*,
-  -modernize-use-trailing-return-type  # Exclude for check
-HeaderFilterRegex: '^include/'
-WarningsAsErrors: ''
+  -modernize-use-trailing-return-type,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity,
+  -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-avoid-c-arrays,
+  -modernize-avoid-c-arrays,
+  -bugprone-easily-swappable-parameters
+HeaderFilterRegex: '.*include/httpclientlite/.*'
+WarningsAsErrors: '*'
 HeaderFileExtensions: ['', 'h','hh','hpp','hxx']
 ImplementationFileExtensions: ['c','cc','cpp','cxx']
-# AnalyzeTemporaryDtors: false
 FormatStyle:     file
 User:            John
 CheckOptions:
-  modernize-use-nullptr.NullMacros: 'NULL'  # Check for replace 'NULL' on 'nullptr'
-  cppcoreguidelines-pro-bounds-pointer-arithmetic: 0
+  modernize-use-nullptr.NullMacros: 'NULL'
 ...

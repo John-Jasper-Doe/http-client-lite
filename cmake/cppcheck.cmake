@@ -1,18 +1,9 @@
-# Static analysis with cppcheck, runs before compiling every TU.
-# The check cannot be disabled: configuration fails if cppcheck is missing.
+# Static analysis flags with cppcheck. The tool itself is located and
+# verified by check-tools.cmake; these flags are consumed by the
+# check-pipeline.sh wrapper (wired up in clang-tidy.cmake): the wrapper
+# runs cppcheck before clang-tidy for every TU, both before compiling.
 
-# Adding cppcheck integration if executable is found
-find_program (CPPCHECK "cppcheck")
-
-if (NOT CPPCHECK)
-  message (FATAL_ERROR
-    "cppcheck is required but was not found! Install it (e.g. sudo apt-get install cppcheck)"
-  )
-endif ()
-
-message (STATUS "Cppcheck is found: ${CPPCHECK}")
-
-set (CMAKE_CXX_CPPCHECK
+set (CPPCHECK_FLAGS
   ${CPPCHECK}
   "--enable=warning,style,performance,portability,information,missingInclude"
   "--std=c++${CMAKE_CXX_STANDARD}"

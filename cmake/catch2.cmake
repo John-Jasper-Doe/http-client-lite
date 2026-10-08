@@ -12,6 +12,26 @@ FetchContent_Declare (
 
 FetchContent_MakeAvailable (catch2test)
 
+# Treat Catch2 headers as system headers so that static analyzers do not
+# report findings in third-party code (clang-analyzer's EnumCastOutOfRange
+# ignores header filters: llvm-project#179094)
+foreach (_catch2_target Catch2::Catch2 Catch2::Catch2WithMain)
+	if (TARGET ${_catch2_target})
+		get_target_property (_catch2_real ${_catch2_target} ALIASED_TARGET)
+		if (_catch2_real)
+			set (_catch2_target ${_catch2_real})
+		endif ()
+		get_target_property (_catch2_incs ${_catch2_target} INTERFACE_INCLUDE_DIRECTORIES)
+		if (_catch2_incs)
+			set_property (TARGET ${_catch2_target} PROPERTY INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_catch2_incs}")
+			set_property (TARGET ${_catch2_target} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "")
+		endif ()
+	endif ()
+endforeach ()
+unset (_catch2_target)
+unset (_catch2_real)
+unset (_catch2_incs)
+
 message (STATUS "FetchContent on: ${catch2test_SOURCE_DIR}")
 
 ## Function for adding test cases.
@@ -30,12 +50,11 @@ function (add_test_executable TARGET_NAME FILE_NAME)
 		PROPERTIES
 			CXX_STANDARD ${CMAKE_CXX_STANDARD}
 			CXX_STANDARD_REQUIRED ${CMAKE_CXX_STANDARD_REQUIRED}
-			CXX_CLANG_TIDY "${CLANG_TIDY}"
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
 		EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/tests
 	)
 
-	target_include_directories (${EXECUTABLE_TEST_NAME} PRIVATE ${catch2test_SOURCE_DIR}/src)
+	target_include_directories (${EXECUTABLE_TEST_NAME} SYSTEM PRIVATE ${catch2test_SOURCE_DIR}/src)
 	target_link_libraries (${EXECUTABLE_TEST_NAME} PRIVATE http_client_lite Catch2::Catch2WithMain)
 	target_compile_definitions (${EXECUTABLE_TEST_NAME} PRIVATE NDEBUG)
 

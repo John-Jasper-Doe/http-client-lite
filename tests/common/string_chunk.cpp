@@ -7,29 +7,28 @@ using common::string_chunk;
 
 TEST_CASE("Test JDL of String Chunk", "[string_chunk]") {
   SECTION("Internal of types") {
-    REQUIRE(std::is_same<typename chunk_t::value_type, char>::value);
+    REQUIRE(std::is_same_v<typename chunk_t::value_type, char>);
 
-    REQUIRE(std::is_same<typename chunk_t::pointer, char*>::value);
-    REQUIRE(std::is_same<typename chunk_t::const_pointer, char const*>::value);
-    REQUIRE(std::is_same<typename chunk_t::reference, char&>::value);
-    REQUIRE(std::is_same<typename chunk_t::const_reference, char const&>::value);
+    REQUIRE(std::is_same_v<typename chunk_t::pointer, char*>);
+    REQUIRE(std::is_same_v<typename chunk_t::const_pointer, char const*>);
+    REQUIRE(std::is_same_v<typename chunk_t::reference, char&>);
+    REQUIRE(std::is_same_v<typename chunk_t::const_reference, char const&>);
 
-    REQUIRE(std::is_same<typename chunk_t::iterator, char const*>::value);
-    REQUIRE(std::is_same<typename chunk_t::const_iterator, char const*>::value);
-    REQUIRE(std::is_same<typename chunk_t::reverse_iterator,
-                         typename std::reverse_iterator<char const*>>::value);
-    REQUIRE(std::is_same<typename chunk_t::const_reverse_iterator,
-                         typename std::reverse_iterator<char const*>>::value);
+    REQUIRE(std::is_same_v<typename chunk_t::iterator, char const*>);
+    REQUIRE(std::is_same_v<typename chunk_t::const_iterator, char const*>);
+    REQUIRE(std::is_same_v<typename chunk_t::reverse_iterator, std::reverse_iterator<char const*>>);
+    REQUIRE(
+    std::is_same_v<typename chunk_t::const_reverse_iterator, std::reverse_iterator<char const*>>);
 
-    REQUIRE(std::is_same<typename chunk_t::size_type, std::size_t>::value);
-    REQUIRE(std::is_same<typename chunk_t::difference_type, std::ptrdiff_t>::value);
+    REQUIRE(std::is_same_v<typename chunk_t::size_type, std::size_t>);
+    REQUIRE(std::is_same_v<typename chunk_t::difference_type, std::ptrdiff_t>);
   }
 
   SECTION("String_chunk of constructed by default") {
     chunk_t ch;
 
     REQUIRE(ch.data() == nullptr);
-    REQUIRE(ch.size() == 0);
+    REQUIRE(ch.empty());
 
     REQUIRE(ch.begin() == nullptr);
     REQUIRE(ch.end() == nullptr);

@@ -1,16 +1,8 @@
 # Pre-build code style check (clang-format --dry-run), gated by the
 # STYLE_CHECK option (ON by default). Any violation fails the build.
-
-find_program (CLANG_FORMAT "clang-format")
+# clang-format is located and verified by check-tools.cmake.
 
 if (STYLE_CHECK)
-  if (NOT CLANG_FORMAT)
-    message (FATAL_ERROR
-      "STYLE_CHECK is ON but clang-format was not found! "
-      "Install clang-format or configure with -DSTYLE_CHECK=OFF"
-    )
-  endif ()
-
   file (
     GLOB_RECURSE
     STYLE_SOURCE_FILES

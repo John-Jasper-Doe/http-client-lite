@@ -13,6 +13,7 @@
 
 #include <cstddef>
 #include <string>
+#include <utility>
 
 #include "../common/common.hpp"
 #include "components.hpp"
@@ -49,48 +50,49 @@ namespace core {
   public:
     /// @brief Parse a URI string
     /// @param uri - the URI string to parse
-    explicit parser(const std::string& uri)
-      : uri_(uri) {
+    explicit parser(std::string uri)
+      : uri_(std::move(uri)) {
       parse();
     }
 
     /// The parser owns views into its URI string; they would dangle
     /// after a copy or move.
+    ~parser() = default;
     parser(const parser&) = delete;
     parser& operator=(const parser&) = delete;
     parser(parser&&) = delete;
     parser& operator=(parser&&) = delete;
 
     /// @brief Get all parsed components
-    const components& get() const noexcept {
+    [[nodiscard]] const components& get() const noexcept {
       return comp_;
     }
 
     /// @brief Get the original URI string
-    const std::string& uri() const noexcept {
+    [[nodiscard]] const std::string& uri() const noexcept {
       return uri_;
     }
 
     /// @brief Access individual components
-    string_chunk<> scheme() const noexcept {
+    [[nodiscard]] string_chunk<> scheme() const noexcept {
       return comp_.scheme;
     }
-    string_chunk<> userinfo() const noexcept {
+    [[nodiscard]] string_chunk<> userinfo() const noexcept {
       return comp_.userinfo;
     }
-    string_chunk<> host() const noexcept {
+    [[nodiscard]] string_chunk<> host() const noexcept {
       return comp_.host;
     }
-    string_chunk<> port() const noexcept {
+    [[nodiscard]] string_chunk<> port() const noexcept {
       return comp_.port;
     }
-    string_chunk<> path() const noexcept {
+    [[nodiscard]] string_chunk<> path() const noexcept {
       return comp_.path;
     }
-    string_chunk<> query() const noexcept {
+    [[nodiscard]] string_chunk<> query() const noexcept {
       return comp_.query;
     }
-    string_chunk<> fragment() const noexcept {
+    [[nodiscard]] string_chunk<> fragment() const noexcept {
       return comp_.fragment;
     }
   };

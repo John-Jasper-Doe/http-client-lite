@@ -28,7 +28,9 @@ option (HTTP_CLIENT_LITE_BUILD_EXAMPLES "Build examples" OFF)
 option (STYLE_CHECK "Check code style before every build" ON)
 
 ## Checks...
+include (check-tools)
 include (cppcheck)
+include (clang-tidy)
 include (style-check)
 
 

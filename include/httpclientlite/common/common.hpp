@@ -38,16 +38,16 @@ namespace common {
 
   public:
     /// @brief Type alias for the element type
-    typedef CHAR_TYPE value_type;
+    using value_type = CHAR_TYPE;
 
     /// @brief Type alias for mutable pointer (kept for backward compatibility)
-    typedef CHAR_TYPE* pointer;
+    using pointer = CHAR_TYPE*;
     /// @brief Type alias for const pointer
-    typedef CHAR_TYPE const* const_pointer;
+    using const_pointer = CHAR_TYPE const*;
     /// @brief Type alias for mutable reference (kept for backward compatibility)
-    typedef CHAR_TYPE& reference;
+    using reference = CHAR_TYPE&;
     /// @brief Type alias for const reference
-    typedef CHAR_TYPE const& const_reference;
+    using const_reference = CHAR_TYPE const&;
 
     /// @brief Iterator type (const, since string_chunk is non-owning and read-only)
     using iterator = const_pointer;
@@ -55,17 +55,19 @@ namespace common {
     using reverse_iterator = std::reverse_iterator<const_iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    typedef std::size_t size_type;
-    typedef std::ptrdiff_t difference_type;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
 
     /// @brief Constant for "not found" position, same as string_view::npos
     static constexpr size_type npos = view_type::npos;
 
     string_chunk() = default;
+    ~string_chunk() = default;
 
     /// @brief Construct from raw pointer and size
     /// @param ptr - pointer to character data
     /// @param sz - number of characters
+    // cppcheck-suppress passedByValue  -- size_t is cheap to copy
     explicit string_chunk(CHAR_TYPE const* ptr, size_type sz) noexcept
       : view_(ptr, sz) {}
 
@@ -82,6 +84,7 @@ namespace common {
     string_chunk& operator=(string_chunk&&) noexcept = default;
 
     /// @brief Access element by index (no bounds checking)
+    // cppcheck-suppress passedByValue  -- size_t is cheap to copy
     const_reference operator[](size_type pos) const {
       return view_[pos];
     }
@@ -96,50 +99,50 @@ namespace common {
       return view_ != other.view_;
     }
 
-    const_iterator begin() const noexcept {
+    [[nodiscard]] const_iterator begin() const noexcept {
       return view_.data();
     }
 
-    const_iterator end() const noexcept {
+    [[nodiscard]] const_iterator end() const noexcept {
       return view_.data() + view_.size();
     }
 
-    const_iterator cbegin() const noexcept {
+    [[nodiscard]] const_iterator cbegin() const noexcept {
       return begin();
     }
 
-    const_iterator cend() const noexcept {
+    [[nodiscard]] const_iterator cend() const noexcept {
       return end();
     }
 
-    const_reverse_iterator rbegin() const noexcept {
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept {
       return const_reverse_iterator(end());
     }
 
-    const_reverse_iterator rend() const noexcept {
+    [[nodiscard]] const_reverse_iterator rend() const noexcept {
       return const_reverse_iterator(begin());
     }
 
-    const_reverse_iterator crbegin() const noexcept {
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept {
       return rbegin();
     }
 
-    const_reverse_iterator crend() const noexcept {
+    [[nodiscard]] const_reverse_iterator crend() const noexcept {
       return rend();
     }
 
     /// @brief Returns true if the view is empty (size == 0)
-    bool empty() const noexcept {
+    [[nodiscard]] bool empty() const noexcept {
       return view_.empty();
     }
 
     /// @brief Returns the number of characters in the view
-    size_type size() const noexcept {
+    [[nodiscard]] size_type size() const noexcept {
       return view_.size();
     }
 
     /// @brief Returns a pointer to the underlying character data
-    const_pointer data() const noexcept {
+    [[nodiscard]] const_pointer data() const noexcept {
       return view_.data();
     }
 
@@ -155,7 +158,7 @@ namespace common {
     /// @param c - character to search for
     /// @param pos - position to start searching from
     /// @return Position of the first match, or npos if not found
-    size_type find(CHAR_TYPE c, size_type pos = 0) const noexcept {
+    [[nodiscard]] size_type find(CHAR_TYPE c, size_type pos = 0) const noexcept {
       return view_.find(c, pos);
     }
 
@@ -163,17 +166,19 @@ namespace common {
     /// @param str - std::basic_string to search for
     /// @param pos - position to start searching from
     /// @return Position of the first match, or npos if not found
-    size_type find(std::basic_string<CHAR_TYPE> const& str, size_type pos = 0) const noexcept {
+    [[nodiscard]] size_type find(std::basic_string<CHAR_TYPE> const& str,
+                                 size_type pos = 0) const noexcept {
       return view_.find(view_type(str), pos);
     }
 
     /// @brief Returns a std::basic_string copy of the view (project-specific, not in string_view)
-    std::basic_string<CHAR_TYPE> str() const {
+    [[nodiscard]] std::basic_string<CHAR_TYPE> str() const {
       return view_.empty() ? std::basic_string<CHAR_TYPE>() : std::basic_string<CHAR_TYPE>(view_);
     }
 
     /// @brief Access element by index with bounds assertion (not throw like string_view)
-    const_reference at(size_type pos) const {
+    // cppcheck-suppress passedByValue  -- size_t is cheap to copy
+    [[nodiscard]] const_reference at(size_type pos) const {
       assert(pos < view_.size());
       return view_[pos];
     }
@@ -185,7 +190,8 @@ namespace common {
     /// @param pos - start position
     /// @param count - number of characters (default: npos = to the end)
     /// @return A new string_chunk for the sub-range, or empty chunk if pos is out of bounds
-    string_chunk substr(size_type pos, size_type count = npos) const noexcept {
+    // cppcheck-suppress passedByValue  -- size_t is cheap to copy
+    [[nodiscard]] string_chunk substr(size_type pos, size_type count = npos) const noexcept {
       if (pos >= view_.size()) {
         return string_chunk();
       }

@@ -50,6 +50,7 @@ TEST_CASE("param_value", "[param_value]") {
 
   SECTION("Copy construction") {
     param_value pv1("test");
+    // NOLINTNEXTLINE(performance-unnecessary-copy-initialization) -- tests the copy ctor
     param_value pv2(pv1);
 
     CHECK(pv2.as_string() == "test");
@@ -147,7 +148,7 @@ TEST_CASE("rule<vector> splits components by delimiter", "[rule_list]") {
     CHECK(val.type() == param_value::type_tag::list);
     // "/a/b/c" split by '/' gives ["", "a", "b", "c"]
     CHECK(val.as_list().size() == 4);
-    CHECK(val.as_list()[0] == "");
+    CHECK(val.as_list()[0].empty());
     CHECK(val.as_list()[1] == "a");
     CHECK(val.as_list()[2] == "b");
     CHECK(val.as_list()[3] == "c");
@@ -161,7 +162,7 @@ TEST_CASE("rule<vector> splits components by delimiter", "[rule_list]") {
 
     // "/search" split by '/' gives ["", "search"]
     CHECK(val.as_list().size() == 2);
-    CHECK(val.as_list()[0] == "");
+    CHECK(val.as_list()[0].empty());
     CHECK(val.as_list()[1] == "search");
   }
 
@@ -231,7 +232,7 @@ TEST_CASE("rule<map> parses query strings", "[rule_map]") {
     param_value val = r.extract(p.get());
 
     CHECK(val.as_map().size() == 2);
-    CHECK(val.as_map().at("q") == "");
+    CHECK(val.as_map().at("q").empty());
     CHECK(val.as_map().at("sort") == "asc");
   }
 

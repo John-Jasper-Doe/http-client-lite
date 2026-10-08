@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -24,7 +25,7 @@ namespace core {
   using common::string_chunk;
 
   /// @brief Identifies which component of the URI to extract
-  enum class location {
+  enum class location : std::uint8_t {
     scheme,     ///< Protocol (e.g., "http", "https", "ftp")
     authority,  ///< [userinfo@]host[:port] region — never stored as a
                 ///< whole, only split into userinfo/host/port
@@ -132,7 +133,7 @@ namespace core {
     string_chunk<> fragment;  ///< e.g., "section1"
 
     /// @brief Returns true if ALL components are empty
-    bool empty() const noexcept {
+    [[nodiscard]] bool empty() const noexcept {
       return scheme.empty() && userinfo.empty() && host.empty() && port.empty() && path.empty() &&
              query.empty() && fragment.empty();
     }

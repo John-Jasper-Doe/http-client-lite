@@ -54,23 +54,37 @@ cmake -B build -DSTYLE_CHECK=OFF
 ```
 
 
-## Static analysis (cppcheck)
+## Static analysis (cppcheck + clang-tidy)
 
-[cppcheck](https://cppcheck.sourceforge.io/) runs automatically before every
-compilation and **cannot be disabled**: the build fails on any finding, and
-the configuration fails when cppcheck is not installed
-(`sudo apt-get install cppcheck`).
+[cppcheck](https://cppcheck.sourceforge.io/) and
+[clang-tidy](https://clang.llvm.org/extra/clang-tidy/) run automatically
+before every compilation and **cannot be disabled**: the build fails on any
+finding, and the configuration fails when a required tool is missing — all
+missing tools are reported at once with an installation hint
+(`sudo apt-get install cppcheck clang-tidy clang-format`).
 
-The check is pedantic: `--inconclusive`, `--check-level=exhaustive`,
+The order per translation unit is fixed: `cppcheck` -> `clang-tidy` ->
+compilation. Both checks are executed by the `cmake/check-pipeline.sh`
+wrapper, and each step is echoed into the build log
+(`[check] cppcheck start: ...`, `[check] clang-tidy start: ...`).
+
+The cppcheck check is pedantic: `--inconclusive`, `--check-level=exhaustive`,
 `--force` (all `#ifdef` configurations); warnings, style, performance,
 portability and information findings are treated as errors
 (`--error-exitcode=1`).
+
+The clang-tidy check is configured by the `.clang-tidy` file at the
+repository root: analyzer, bugprone, modernize, performance, readability and
+core-guideline checks, every warning is treated as an error
+(`WarningsAsErrors: '*'`), and header diagnostics are limited to
+`include/httpclientlite/`.
 
 To silence a false positive, put an inline suppression on the line above
 (the build stays green):
 
 ```c++
 // cppcheck-suppress <check-id>
+// NOLINT(<check-name>)
 ```
 
 

@@ -15,6 +15,7 @@
 ///   rule<unordered_map<string,string>, location::query> — parse query as map
 
 #include <cassert>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -34,7 +35,7 @@ namespace core {
   class param_value {
   public:
     /// @brief Type tag for runtime type identification
-    enum class type_tag {
+    enum class type_tag : std::uint8_t {
       empty,   ///< No value
       string,  ///< Single string value
       list,    ///< Ordered list of strings
@@ -71,6 +72,7 @@ namespace core {
     param_value(param_value&&) noexcept = default;
     param_value& operator=(param_value const&) = default;
     param_value& operator=(param_value&&) noexcept = default;
+    ~param_value() = default;
 
     /// @brief Returns the type tag
     type_tag type() const noexcept {
@@ -120,11 +122,17 @@ namespace core {
   public:
     virtual ~rule_base() = default;
 
+    rule_base() = default;
+    rule_base(rule_base const&) = delete;
+    rule_base& operator=(rule_base const&) = delete;
+    rule_base(rule_base&&) = delete;
+    rule_base& operator=(rule_base&&) = delete;
+
     /// @brief Returns the name of this rule
-    virtual std::string name() const = 0;
+    [[nodiscard]] virtual std::string name() const = 0;
 
     /// @brief Extract a value from the given URI components
-    virtual param_value extract(const components& comp) const = 0;
+    [[nodiscard]] virtual param_value extract(const components& comp) const = 0;
   };
 
   /// @class rule
@@ -157,11 +165,11 @@ namespace core {
     explicit rule(std::string name)
       : name_(std::move(name)) {}
 
-    std::string name() const override {
+    [[nodiscard]] std::string name() const override {
       return name_;
     }
 
-    param_value extract(const components& comp) const override {
+    [[nodiscard]] param_value extract(const components& comp) const override {
       string_chunk<> chunk;
       switch (Loc) {
         case location::scheme:
@@ -217,11 +225,11 @@ namespace core {
       : name_(std::move(name))
       , delimiter_(delimiter) {}
 
-    std::string name() const override {
+    [[nodiscard]] std::string name() const override {
       return name_;
     }
 
-    param_value extract(const components& comp) const override {
+    [[nodiscard]] param_value extract(const components& comp) const override {
       string_chunk<> chunk;
       switch (Loc) {
         case location::scheme:
@@ -280,11 +288,11 @@ namespace core {
       , kv_delimiter_(kv_delim)
       , pair_delimiter_(pair_delim) {}
 
-    std::string name() const override {
+    [[nodiscard]] std::string name() const override {
       return name_;
     }
 
-    param_value extract(const components& comp) const override {
+    [[nodiscard]] param_value extract(const components& comp) const override {
       return param_value(detail::parse_query(comp.query, kv_delimiter_, pair_delimiter_));
     }
   };
