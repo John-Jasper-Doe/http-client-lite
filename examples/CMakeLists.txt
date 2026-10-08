@@ -3,6 +3,7 @@ function (add_examples TARGET_NAME FILE_NAME)
 	set (EXAMPLE_NAME "example_${TARGET_NAME}")
 	add_executable (${EXAMPLE_NAME} ${FILE_NAME})
 	target_link_libraries (${EXAMPLE_NAME} PRIVATE http_client_lite)
+	set_property (GLOBAL APPEND PROPERTY HTTP_CLIENT_LITE_EXAMPLE_EXES ${EXAMPLE_NAME})
 	message (STATUS "- Append examples: ${EXAMPLE_NAME}")
 endfunction (add_examples)
 

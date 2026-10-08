@@ -23,11 +23,28 @@ http client lite  is distributed under the [MIT License](https://github.com/john
 ```
 
 
-## Building tests
+## Building
+
+Tests are built and run **by default**, before the rest of the build
+(the library itself is header-only, so the rest is examples and other
+auxiliary targets). The `run_tests` build step runs `ctest` after the
+test binaries are built; the build stops if any test fails, and the
+remaining targets are not built:
 
 ```bash
-cmake -B build -DHTTP_CLIENT_LITE_BUILD_TESTS=ON
-cmake --build build
+cmake -B build
+cmake --build build    # builds the tests, runs them, then builds the rest
+```
+
+Disable the whole test step with:
+
+```bash
+cmake -B build -DHTTP_CLIENT_LITE_BUILD_TESTS=OFF
+```
+
+The tests can still be run manually at any time:
+
+```bash
 ctest --test-dir build
 ```
 

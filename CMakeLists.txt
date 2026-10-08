@@ -31,7 +31,7 @@ if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
 endif (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
 
 ## Options...
-option (HTTP_CLIENT_LITE_BUILD_TESTS "Build tests" OFF)
+option (HTTP_CLIENT_LITE_BUILD_TESTS "Build tests" ON)
 option (HTTP_CLIENT_LITE_BUILD_EXAMPLES "Build examples" OFF)
 option (STYLE_CHECK "Check code style before every build" ON)
 option (HTTP_CLIENT_LITE_ENABLE_CHECKS
@@ -88,6 +88,25 @@ if (HTTP_CLIENT_LITE_BUILD_TESTS)
 	enable_testing ()
 	include (catch2)
 	add_subdirectory (tests)
+
+	# Build step: run the tests before the rest of the build; the build
+	# stops when any test fails.
+	add_custom_target (run_tests ALL
+		COMMAND ${CMAKE_COMMAND} -E echo "[tests] run before the build"
+		COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+		COMMENT
+			"Running tests"
+		USES_TERMINAL
+		VERBATIM
+	)
+	get_property (TEST_EXES GLOBAL PROPERTY HTTP_CLIENT_LITE_TEST_EXES)
+	add_dependencies (run_tests ${TEST_EXES})
+
+	# The rest of the build (examples) starts only after the tests pass.
+	get_property (EXAMPLE_EXES GLOBAL PROPERTY HTTP_CLIENT_LITE_EXAMPLE_EXES)
+	foreach (EXAMPLE_EXE IN LISTS EXAMPLE_EXES)
+		add_dependencies (${EXAMPLE_EXE} run_tests)
+	endforeach (EXAMPLE_EXE IN LISTS EXAMPLE_EXES)
 endif (HTTP_CLIENT_LITE_BUILD_TESTS)
 
 ## Runtime analysis (separate build target: valgrind; sanitizer/coverage
