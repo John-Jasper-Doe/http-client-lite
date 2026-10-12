@@ -17,6 +17,7 @@ project (http_client_lite LANGUAGES CXX)
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include (compiler)
 include (version)
+include (GNUInstallDirs)
 
 ## Settings...
 # Nested tooling builds (sanitizer/coverage targets) override the output
@@ -60,11 +61,15 @@ list (APPEND ${PROJECT_NAME}_HEADERS ${${CURRENT_DIRECTORY}_HEADERS})
 
 # Interface library
 add_library (${PROJECT_NAME} INTERFACE)
-target_sources (
-	${PROJECT_NAME}
-	INTERFACE
-		${${PROJECT_NAME}_HEADERS}
-)
+# The headers are listed as INTERFACE sources for IDE visibility only: the
+# BUILD_INTERFACE wrapper keeps them out of the installed export file, which
+# rejects source-directory paths.
+foreach (${PROJECT_NAME}_HEADER IN LISTS ${PROJECT_NAME}_HEADERS)
+	target_sources (
+		${PROJECT_NAME}
+		INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_HEADER}>
+	)
+endforeach (${PROJECT_NAME}_HEADER IN LISTS ${PROJECT_NAME}_HEADERS)
 target_include_directories (
     ${PROJECT_NAME}
     INTERFACE
@@ -116,4 +121,10 @@ endif (TARGET run_checks)
 ## Runtime analysis (separate build targets: valgrind; sanitizer/coverage
 ## targets are created by the deferred functions from the modules above)
 include (valgrind)
+
+## Installation rules and the CMake package config (find_package support)
+include (install)
+
+## Packaging (CPack: DEB and, when rpmbuild is available, RPM)
+include (packaging)
 

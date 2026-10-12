@@ -1,0 +1,30 @@
+# cpack-project-config.cmake — generated into the build directory; CPack
+# includes it at package time, once per generator, AFTER CPackConfig.cmake
+# (the CPACK_PROJECT_CONFIG_FILE mechanism), so everything set here wins over
+# the configure-time values.
+#
+# The version file is re-read here: the packages always carry the actual HEAD,
+# even when commits were made after the last configure.
+
+if (EXISTS "@CMAKE_BINARY_DIR@/version.txt")
+  file (READ "@CMAKE_BINARY_DIR@/version.txt" PACKAGE_VERSION)
+  string (STRIP "${PACKAGE_VERSION}" PACKAGE_VERSION)
+
+  # A Debian version must start with a digit: keep the configure-time value
+  # when the git version is unavailable.
+  if (PACKAGE_VERSION MATCHES "^[0-9]")
+    set (CPACK_PACKAGE_VERSION "${PACKAGE_VERSION}")
+
+    # RPM keeps plain numeric components in the Version tag; the build
+    # metadata after '+' (git hash etc.) moves into the Release part.
+    if (CPACK_GENERATOR STREQUAL "RPM")
+      if (PACKAGE_VERSION MATCHES "^(.*)\\+(.*)$")
+        set (CPACK_RPM_PACKAGE_VERSION "${CMAKE_MATCH_1}")
+        set (CPACK_RPM_PACKAGE_RELEASE "1.${CMAKE_MATCH_2}")
+      else ()
+        set (CPACK_RPM_PACKAGE_VERSION "${PACKAGE_VERSION}")
+        set (CPACK_RPM_PACKAGE_RELEASE "1")
+      endif (PACKAGE_VERSION MATCHES "^(.*)\\+(.*)$")
+    endif (CPACK_GENERATOR STREQUAL "RPM")
+  endif (PACKAGE_VERSION MATCHES "^[0-9]")
+endif (EXISTS "@CMAKE_BINARY_DIR@/version.txt")

@@ -1,0 +1,8 @@
+## http_client_liteConfig.cmake — find_package(http_client_lite CONFIG) entry
+## point. It pulls in the exported (interface) target; the version check is
+## handled by http_client_liteConfigVersion.cmake in the same directory.
+
+@PACKAGE_INIT@
+
+include ("${CMAKE_CURRENT_LIST_DIR}/http_client_liteTargets.cmake")
+check_required_components (http_client_lite)

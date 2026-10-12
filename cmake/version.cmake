@@ -28,6 +28,19 @@ execute_process (
     -P ${VERSION_SCRIPT}
 )
 
+# The version computed by the script above, shared with the install/packaging
+# modules and refreshed automatically whenever it changes during a build
+# (version.txt is rewritten only on an actual version change).
+if (EXISTS "${CMAKE_BINARY_DIR}/version.txt")
+  file (READ "${CMAKE_BINARY_DIR}/version.txt" HTTP_CLIENT_LITE_VERSION)
+  string (STRIP "${HTTP_CLIENT_LITE_VERSION}" HTTP_CLIENT_LITE_VERSION)
+else ()
+  set (HTTP_CLIENT_LITE_VERSION "0.0.0")
+endif (EXISTS "${CMAKE_BINARY_DIR}/version.txt")
+set_property (DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+  "${CMAKE_BINARY_DIR}/version.txt"
+)
+
 # Build-time banner: `version` is an always-run target, so every build
 # recomputes the version and the date. The bare version string goes to
 # <build>/version.txt and is rewritten only when it changes, keeping the file
