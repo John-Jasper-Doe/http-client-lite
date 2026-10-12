@@ -47,6 +47,12 @@ install (DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
 install (FILES LICENSE README.md DESTINATION ${CMAKE_INSTALL_DOCDIR})
 message (STATUS "- Documentation: ${CMAKE_INSTALL_DOCDIR}")
 
+# The amalgamated single header (generated at build time) -> <prefix>/include/
+if (AMALGAMATED_HEADER)
+  install (FILES ${AMALGAMATED_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  message (STATUS "- Single header: ${CMAKE_INSTALL_INCLUDEDIR}/httpclientlite.hpp")
+endif (AMALGAMATED_HEADER)
+
 # CMake package: the exported target plus the config/version files
 set (INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 install (TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets)

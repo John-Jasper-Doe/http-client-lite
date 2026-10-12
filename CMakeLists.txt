@@ -40,6 +40,8 @@ option (HTTP_CLIENT_LITE_BUILD_TESTS "Build tests" ON)
 option (HTTP_CLIENT_LITE_BUILD_EXAMPLES "Build examples" OFF)
 option (HTTP_CLIENT_LITE_STYLE_CHECK
   "Check code style (clang-format) as part of the run_checks step" ON)
+option (HTTP_CLIENT_LITE_AMALGAMATE
+  "Group the library into a single header file" OFF)
 
 ## Checks...
 include (check-tools)
@@ -76,6 +78,30 @@ target_include_directories (
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
+
+## Single-header amalgamation (optional): the generated header is offered to
+## the consumers of the target as <httpclientlite.hpp> and is regenerated
+## only when one of the source headers or the script itself changes.
+if (HTTP_CLIENT_LITE_AMALGAMATE)
+	set (AMALGAMATED_HEADER ${CMAKE_BINARY_DIR}/generated/httpclientlite.hpp)
+	add_custom_command (
+		OUTPUT ${AMALGAMATED_HEADER}
+		COMMAND ${CMAKE_COMMAND}
+			"-DHEADER_DIR=${CMAKE_CURRENT_SOURCE_DIR}/include"
+			"-DOUTPUT_FILE=${AMALGAMATED_HEADER}"
+			-P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/amalgamate.cmake
+		DEPENDS ${${PROJECT_NAME}_HEADERS}
+			${CMAKE_CURRENT_SOURCE_DIR}/cmake/amalgamate.cmake
+		COMMENT
+			"Amalgamating the headers into httpclientlite.hpp"
+		VERBATIM
+	)
+	add_custom_target (amalgamate ALL DEPENDS ${AMALGAMATED_HEADER})
+	target_include_directories (${PROJECT_NAME} INTERFACE
+		"$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/generated>"
+	)
+	message (STATUS "Build with the amalgamated single header...")
+endif (HTTP_CLIENT_LITE_AMALGAMATE)
 
 
 ## Examples
@@ -117,6 +143,15 @@ include (run-checks)
 if (TARGET run_checks)
 	add_dependencies (run_checks version)
 endif (TARGET run_checks)
+
+# The amalgamated header must exist before the test binaries compile the
+# smoke test that includes it.
+if (TARGET amalgamate)
+	get_property (AMALGAM_TEST_EXES GLOBAL PROPERTY HTTP_CLIENT_LITE_TEST_EXES)
+	foreach (TEST_EXE IN LISTS AMALGAM_TEST_EXES)
+		add_dependencies (${TEST_EXE} amalgamate)
+	endforeach (TEST_EXE IN LISTS AMALGAM_TEST_EXES)
+endif (TARGET amalgamate)
 
 ## Runtime analysis (separate build targets: valgrind; sanitizer/coverage
 ## targets are created by the deferred functions from the modules above)

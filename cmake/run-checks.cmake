@@ -52,6 +52,14 @@ list (APPEND CHECK_COMMANDS
   COMMAND ${CMAKE_COMMAND} -E touch ${CHECK_STAMP}
 )
 
+# The amalgamated header is generated: the checks over the smoke test must
+# see a fresh file, so the stamp gets an explicit file-level dependency on
+# it (the stamp recipe is where cppcheck/clang-tidy actually run).
+set (CHECK_GENERATED_DEPS "")
+if (AMALGAMATED_HEADER)
+  list (APPEND CHECK_GENERATED_DEPS ${AMALGAMATED_HEADER})
+endif (AMALGAMATED_HEADER)
+
 add_custom_command (
   OUTPUT ${CHECK_STAMP}
   ${CHECK_COMMANDS}
@@ -59,6 +67,7 @@ add_custom_command (
     ${CHECK_SOURCES}
     ${CHECK_HEADERS}
     ${CMAKE_SOURCE_DIR}/.clang-tidy
+    ${CHECK_GENERATED_DEPS}
   COMMENT
     "Running code checks (${CHECK_STAGES})"
   VERBATIM
