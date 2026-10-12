@@ -46,7 +46,12 @@ list (APPEND CHECK_COMMANDS
   COMMAND ${CMAKE_COMMAND} -E echo "[check] cppcheck start"
   COMMAND ${CPPCHECK} ${CPPCHECK_FLAGS} ${CHECK_SOURCES}
   COMMAND ${CMAKE_COMMAND} -E echo "[check] clang-tidy start"
-  COMMAND ${CLANG_TIDY} -p ${CMAKE_BINARY_DIR} ${CHECK_SOURCES}
+  COMMAND ${CLANG_TIDY} -p ${CMAKE_BINARY_DIR}
+    # clang-tidy drives the clang frontend, which does not know some gcc
+    # spellings in the compile commands (e.g. -Wimplicit-fallthrough=0);
+    # without this the diagnostics would fail the -Werror builds.
+    -extra-arg=-Wno-unknown-warning-option
+    ${CHECK_SOURCES}
   COMMAND ${CMAKE_COMMAND} -E echo
     "[check] run_checks passed: ${CHECK_STAGES}"
   COMMAND ${CMAKE_COMMAND} -E touch ${CHECK_STAMP}
@@ -97,3 +102,8 @@ if (NOT TARGET run_tests)
     add_dependencies (${EXAMPLE_EXE} run_checks)
   endforeach (EXAMPLE_EXE IN LISTS EXAMPLE_EXES)
 endif (NOT TARGET run_tests)
+
+# The version banner prints before the checks.
+if (TARGET version)
+  add_dependencies (run_checks version)
+endif (TARGET version)

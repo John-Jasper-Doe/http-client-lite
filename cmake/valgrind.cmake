@@ -1,15 +1,26 @@
+# valgrind.cmake
+#
 # Memory analysis with valgrind memcheck: the `valgrind` build target runs
-# every test binary under valgrind; any error or definite/possible leak
-# fails the target. The target is created only when valgrind is installed.
+# every test and example binary under valgrind; any error or
+# definite/possible leak fails the target. The target is created only when
+# valgrind is installed and at least one binary exists (tests and/or
+# examples).
+# --------------------------
+##
+# Copyright 2021... by Maxim Gusev
+#
+# https://github.com/John-Jasper-Doe/http-client-lite
+#
+# Distributed under the MIT License.
+# (See accompanying file LICENSE or copy at https://mit-license.org/)
 
-if (NOT HTTP_CLIENT_LITE_BUILD_TESTS)
-  return ()
-endif ()
 
 get_property (TEST_EXES GLOBAL PROPERTY HTTP_CLIENT_LITE_TEST_EXES)
-if (NOT TEST_EXES)
+get_property (EXAMPLE_EXES GLOBAL PROPERTY HTTP_CLIENT_LITE_EXAMPLE_EXES)
+set (VALGRIND_EXES ${TEST_EXES} ${EXAMPLE_EXES})
+if (NOT VALGRIND_EXES)
   return ()
-endif ()
+endif (NOT VALGRIND_EXES)
 
 find_program (VALGRIND "valgrind")
 if (NOT VALGRIND)
@@ -28,20 +39,20 @@ set (VALGRIND_FLAGS
 )
 
 set (VALGRIND_COMMANDS "")
-foreach (TEST_EXE IN LISTS TEST_EXES)
+foreach (VALGRIND_EXE IN LISTS VALGRIND_EXES)
   list (APPEND VALGRIND_COMMANDS
-    COMMAND ${CMAKE_COMMAND} -E echo "[valgrind] run: ${TEST_EXE}"
-    COMMAND ${VALGRIND} ${VALGRIND_FLAGS} $<TARGET_FILE:${TEST_EXE}>
-    COMMAND ${CMAKE_COMMAND} -E echo "[valgrind] done: ${TEST_EXE}"
+    COMMAND ${CMAKE_COMMAND} -E echo "[valgrind] run: ${VALGRIND_EXE}"
+    COMMAND ${VALGRIND} ${VALGRIND_FLAGS} $<TARGET_FILE:${VALGRIND_EXE}>
+    COMMAND ${CMAKE_COMMAND} -E echo "[valgrind] done: ${VALGRIND_EXE}"
   )
-endforeach ()
+endforeach (VALGRIND_EXE IN LISTS VALGRIND_EXES)
 
 add_custom_target (
   valgrind
   ${VALGRIND_COMMANDS}
   COMMENT
-    "Running valgrind memcheck on the test binaries"
+    "Running valgrind memcheck on the test/example binaries"
   USES_TERMINAL
   VERBATIM
 )
-add_dependencies (valgrind ${TEST_EXES})
+add_dependencies (valgrind ${VALGRIND_EXES})

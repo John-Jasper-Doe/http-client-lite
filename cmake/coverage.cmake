@@ -1,13 +1,24 @@
+# coverage.cmake
+#
 # Coverage instrumentation: the ENABLE_COVERAGE option adds --coverage to
 # the current build, and the `coverage` build target performs a dedicated
-# nested Debug build, runs the tests and prints a per-file line/branch
-# summary for the project headers (cmake/coverage-summary.sh). When gcovr
-# is installed the script also writes an HTML report.
+# nested Debug build, runs the tests/examples and prints a per-file
+# line/branch summary for the project headers (cmake/coverage-summary.sh).
+# When gcovr is installed the script also writes an HTML report.
 #
 # NOTE: this module must be included before the test/example targets are
 # created (the flags are directory properties); the `coverage` target is
 # created after all directories are processed (DEFER), when the global
-# test list is complete.
+# binary lists are complete.
+# --------------------------
+##
+# Copyright 2021... by Maxim Gusev
+#
+# https://github.com/John-Jasper-Doe/http-client-lite
+#
+# Distributed under the MIT License.
+# (See accompanying file LICENSE or copy at https://mit-license.org/)
+
 
 option (ENABLE_COVERAGE "Instrument the build for coverage (--coverage)" OFF)
 
@@ -22,10 +33,11 @@ if (ENABLE_COVERAGE)
   message (STATUS "- Coverage instrumentation enabled (--coverage)")
 endif (ENABLE_COVERAGE)
 
-## Create the `coverage` target: nested build + test run + summary.
+## Create the `coverage` target: nested build + test/example run + summary.
 function (http_client_lite_coverage_target)
   get_property (TEST_EXES GLOBAL PROPERTY HTTP_CLIENT_LITE_TEST_EXES)
-  if (NOT TEST_EXES)
+  get_property (EXAMPLE_EXES GLOBAL PROPERTY HTTP_CLIENT_LITE_EXAMPLE_EXES)
+  if (NOT TEST_EXES AND NOT EXAMPLE_EXES)
     return ()
   endif ()
 
@@ -68,22 +80,41 @@ function (http_client_lite_coverage_target)
       "-DFETCHCONTENT_SOURCE_DIR_CATCH2TEST=${catch2test_SOURCE_DIR}")
   endif (DEFINED catch2test_SOURCE_DIR)
 
-  add_custom_target (
-    coverage
-    COMMAND
-      ${CMAKE_COMMAND} -E echo
-        "[coverage] configure nested build: ${COVERAGE_BUILD_DIR}"
+  set (COVERAGE_COMMANDS
+    COMMAND ${CMAKE_COMMAND} -E echo
+      "[coverage] configure nested build: ${COVERAGE_BUILD_DIR}"
     COMMAND
       ${CMAKE_COMMAND} ${COVERAGE_CONFIGURE_ARGS}
     COMMAND
       ${CMAKE_COMMAND} -E echo "[coverage] build"
     COMMAND
       ${CMAKE_COMMAND} --build "${COVERAGE_BUILD_DIR}" --parallel
-    COMMAND
-      ${CMAKE_COMMAND} -E echo "[coverage] run tests"
-    COMMAND
-      ${CMAKE_CTEST_COMMAND}
-        --test-dir "${COVERAGE_BUILD_DIR}" --output-on-failure
+  )
+
+  # The tests run through ctest, the examples are executed directly (they
+  # are not registered with ctest); both feed the same .gcda counters.
+  if (HTTP_CLIENT_LITE_BUILD_TESTS)
+    list (APPEND COVERAGE_COMMANDS
+      COMMAND
+        ${CMAKE_COMMAND} -E echo "[coverage] run tests"
+      COMMAND
+        ${CMAKE_CTEST_COMMAND}
+          --test-dir "${COVERAGE_BUILD_DIR}" --output-on-failure
+    )
+  endif (HTTP_CLIENT_LITE_BUILD_TESTS)
+
+  if (HTTP_CLIENT_LITE_BUILD_EXAMPLES)
+    list (APPEND COVERAGE_COMMANDS
+      COMMAND
+        ${CMAKE_COMMAND} -E echo "[coverage] run examples"
+      COMMAND
+        ${CMAKE_COMMAND}
+          -DEXAMPLES_DIR=${COVERAGE_BUILD_DIR}/bin
+          -P ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/run-examples.cmake
+    )
+  endif (HTTP_CLIENT_LITE_BUILD_EXAMPLES)
+
+  list (APPEND COVERAGE_COMMANDS
     COMMAND
       ${CMAKE_COMMAND} -E echo "[coverage] summarize"
     COMMAND
@@ -91,14 +122,19 @@ function (http_client_lite_coverage_target)
         "${COVERAGE_BUILD_DIR}"
         "${CMAKE_SOURCE_DIR}"
         "${COVERAGE_REPORT_DIR}"
+  )
+
+  add_custom_target (
+    coverage
+    ${COVERAGE_COMMANDS}
     COMMENT
-      "Nested coverage build, test run and summary"
+      "Nested coverage build, test/example run and summary"
     USES_TERMINAL
     VERBATIM
   )
 endfunction (http_client_lite_coverage_target)
 
-if (HTTP_CLIENT_LITE_BUILD_TESTS)
+if (HTTP_CLIENT_LITE_BUILD_TESTS OR HTTP_CLIENT_LITE_BUILD_EXAMPLES)
   cmake_language (DEFER DIRECTORY "${CMAKE_SOURCE_DIR}"
     CALL http_client_lite_coverage_target)
-endif (HTTP_CLIENT_LITE_BUILD_TESTS)
+endif (HTTP_CLIENT_LITE_BUILD_TESTS OR HTTP_CLIENT_LITE_BUILD_EXAMPLES)
